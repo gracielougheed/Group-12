@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">ZeroVelocityRelease</string>
+    <string name="login_greeting">Welcome to CookBook!\nLogin to get cooking</string>
+    <string name="register_greeting">Welcome to CookBook!\nRegister to get cooking</string>
+    <string name="email_or_username_hint">Email or Username</string>
+    <string name="email_hint">Email</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="confirm_password_hint">Confirm Password</string>
+    <string name="login_button">Login</string>
+    <string name="register_button">Register</string>
 </resources>
