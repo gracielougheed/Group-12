@@ -10,7 +10,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.Firebase;
+import com.google.firebase.database.FirebaseDatabase;
+
 public class LoginActivity extends AppCompatActivity {
+    FirebaseDatabase database = FirebaseDatabase.getInstance(
+            "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/"
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

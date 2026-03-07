@@ -38,19 +38,6 @@
             android:gravity="center">
 
             <EditText
-                android:id="@+id/nameInput"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:drawable/editbox_background"
-                android:hint="@string/username_hint" />
-        </LinearLayout>
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center">
-
-            <EditText
                 android:id="@+id/passwordInput"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -70,12 +57,25 @@
                 android:background="@android:drawable/editbox_background"
                 android:hint="@string/confirm_password_hint" />
         </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center">
+
+            <EditText
+                android:id="@+id/nameInput"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:drawable/editbox_background"
+                android:hint="@string/username_hint" />
+        </LinearLayout>
         <Button
             android:id="@+id/register_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:onClick="register"
+            android:onClick="registerValidation"
             android:text="@string/register_button" />
         <Button
             android:id="@+id/login_button"
