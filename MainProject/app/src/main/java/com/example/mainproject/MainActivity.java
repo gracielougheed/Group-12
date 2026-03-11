@@ -1,4 +1,4 @@
-package com.example.zerovelocityrelease;
+package com.example.mainproject;
 
 import android.os.Bundle;
 
@@ -7,6 +7,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,5 +23,8 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        FirebaseDatabase database = FirebaseDatabase.getInstance(
+                "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/"
+        );
     }
 }
