@@ -1,4 +1,4 @@
-package com.example.zerovelocityrelease;
+package com.example.mainproject;
 
 import org.junit.Test;
 
