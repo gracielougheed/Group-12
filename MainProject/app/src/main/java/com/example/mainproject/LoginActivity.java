@@ -3,20 +3,22 @@ package com.example.mainproject;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
-import com.google.firebase.Firebase;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
-    FirebaseDatabase database = FirebaseDatabase.getInstance(
-            "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/"
-    );
+    private FirebaseAuth myAuth;
+    private EditText emailInput;
+    private EditText passwordInput;
+    private Button loginButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,12 +30,75 @@ public class LoginActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        myAuth = FirebaseAuth.getInstance();
+        emailInput = findViewById(R.id.emailInput);
+        passwordInput = findViewById(R.id.passwordInput);
+        loginButton = findViewById(R.id.login_button);
     }
 
-    public void login(View view) {
-        // Updated to navigate to HomeActivity (Main Menu) instead of MainActivity
-        Intent intent = new Intent(this, HomeActivity.class);
-        startActivity(intent);
+    /**
+     * Handles the login process when the user clicks the "Login" button.
+     * Validates the email and password inputs.
+    */
+    public void loginValidation(View view) {
+        String name_email = emailInput.getText().toString().trim();
+        String password = passwordInput.getText().toString().trim();
+
+        if (!emailValidation(name_email) || !passwordValidation(password)) {
+            return;
+        }
+        loginButton.setEnabled(false);
+
+        myAuth.signInWithEmailAndPassword(name_email, password)
+                .addOnCompleteListener(this, task -> {
+
+                    loginButton.setEnabled(true);
+
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(this, HomeActivity.class);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(this,
+                                "Login failed: " + task.getException().getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    /**
+     * Validates the email or username input.
+     * Checks if the email or username field is not empty.
+     * If null, sets an error message on the email or username input field and requests focus.
+     *
+     * @param name_email The email/username string to validate.
+     * @return true if the email/username is valid, false otherwise.
+     */
+    public boolean emailValidation(String name_email) {
+        if (name_email.isEmpty()) {
+            emailInput.setError("Email or username is required");
+            emailInput.requestFocus();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Validates the password.
+     * Ensures user has typed in a password.
+     * If null, sets an error message on the password input field and requests focus.
+     *
+     * @param password The password string to validate.
+     * @return true if the password is not empty, false otherwise.
+     */
+    public boolean passwordValidation(String password) {
+        if (password.isEmpty()) {
+            passwordInput.setError("Password is required");
+            passwordInput.requestFocus();
+            return false;
+        }
+        return true;
     }
 
     public void goToRegister(View view) {
