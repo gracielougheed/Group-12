@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "956538607551",
+    "firebase_url": "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "cookbook-d313f",
+    "storage_bucket": "cookbook-d313f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:956538607551:android:915e816dd3014ccfe7b30a",
+        "android_client_info": {
+          "package_name": "com.example.mainproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADYNNnY0k8FhgAXk5drE8BSrjiGHVoPxQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:956538607551:android:42156b259dab3bcee7b30a",
+        "android_client_info": {
+          "package_name": "com.example.zerovelocityrelease"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADYNNnY0k8FhgAXk5drE8BSrjiGHVoPxQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
