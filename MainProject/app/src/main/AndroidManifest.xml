@@ -27,6 +27,21 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"/>
+        <activity
+            android:name=".HomeActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".RecipesActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".MealPlannerActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".ShoppingListActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".PantryActivity"
+            android:exported="false"/>
     </application>
 
 </manifest>

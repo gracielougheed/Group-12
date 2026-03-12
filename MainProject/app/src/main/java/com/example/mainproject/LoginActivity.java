@@ -31,7 +31,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void login(View view) {
-        Intent intent = new Intent(this, MainActivity.class);
+        // Updated to navigate to HomeActivity (Main Menu) instead of MainActivity
+        Intent intent = new Intent(this, HomeActivity.class);
         startActivity(intent);
     }
 
