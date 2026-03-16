@@ -25,11 +25,11 @@
             android:gravity="center">
 
             <EditText
-                android:id="@+id/name_emailInput"
+                android:id="@+id/emailInput"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@android:drawable/editbox_background"
-                android:hint="@string/email_or_username_hint" />
+                android:hint="@string/email_hint" />
         </LinearLayout>
         <LinearLayout
             android:orientation="horizontal"
@@ -50,7 +50,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:onClick="login"
+            android:onClick="loginValidation"
             android:text="@string/login_button" />
         <Button
             android:id="@+id/register_button"
