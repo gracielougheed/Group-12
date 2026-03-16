@@ -4,5 +4,7 @@
         <item>@font/athiti</item>
         <item>@font/athiti_light</item>
         <item>@font/patrick_hand</item>
+        <item>@font/roboto</item>
+        <item>@font/roboto_light</item>
     </array>
 </resources>
