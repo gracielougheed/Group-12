@@ -1,15 +1,13 @@
 package com.example.mainproject;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.view.MenuItem;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.android.material.card.MaterialCardView;
+import androidx.fragment.app.Fragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 
-/**
- * HomeActivity serves as the main menu of the CookBook app.
- * It provides navigation to different modules of the application.
- */
 public class HomeActivity extends AppCompatActivity {
 
     @Override
@@ -17,46 +15,38 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // Initialize Cards
-        MaterialCardView cardRecipes = findViewById(R.id.cardRecipes);
-        MaterialCardView cardMealPlanner = findViewById(R.id.cardMealPlanner);
-        MaterialCardView cardShoppingList = findViewById(R.id.cardShoppingList);
-        MaterialCardView cardPantry = findViewById(R.id.cardPantry);
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+        
+        // Set default fragment
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new RecipesFragment())
+                    .commit();
+        }
 
-        // Set Click Listeners for navigation
-        cardRecipes.setOnClickListener(new View.OnClickListener() {
+        bottomNav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
-            public void onClick(View v) {
-                // Navigate to RecipesActivity
-                Intent intent = new Intent(HomeActivity.this, RecipesActivity.class);
-                startActivity(intent);
-            }
-        });
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                Fragment selectedFragment = null;
+                int itemId = item.getItemId();
 
-        cardMealPlanner.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to MealPlannerActivity
-                Intent intent = new Intent(HomeActivity.this, MealPlannerActivity.class);
-                startActivity(intent);
-            }
-        });
+                if (itemId == R.id.nav_recipes) {
+                    selectedFragment = new RecipesFragment();
+                } else if (itemId == R.id.nav_pantry) {
+                    selectedFragment = new PantryFragment();
+                } else if (itemId == R.id.nav_friends) {
+                    selectedFragment = new FriendsFragment();
+                } else if (itemId == R.id.nav_meal_planner) {
+                    selectedFragment = new MealPlannerFragment();
+                }
 
-        cardShoppingList.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to ShoppingListActivity
-                Intent intent = new Intent(HomeActivity.this, ShoppingListActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        cardPantry.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to PantryActivity
-                Intent intent = new Intent(HomeActivity.this, PantryActivity.class);
-                startActivity(intent);
+                if (selectedFragment != null) {
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment_container, selectedFragment)
+                            .commit();
+                    return true;
+                }
+                return false;
             }
         });
     }
