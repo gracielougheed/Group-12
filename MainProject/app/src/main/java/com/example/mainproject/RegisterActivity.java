@@ -19,8 +19,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.Calendar;
-
 public class RegisterActivity extends AppCompatActivity {
 
     FirebaseDatabase database = FirebaseDatabase.getInstance(
@@ -181,12 +179,12 @@ public class RegisterActivity extends AppCompatActivity {
                         // Create user profile in Firebase Realtime Database
                         FirebaseUser firebaseUser = myAuth.getCurrentUser();
                         if(firebaseUser != null){
-                            DatabaseReference usersRef = database.getReference("users").child(firebaseUser.getUid());;
+                            DatabaseReference usersRef = database.getReference("users").child(firebaseUser.getUid());
                             User user = new User(firebaseUser.getUid(), name, email);
-                            usersRef.setValue(user).addOnCompleteListener(dbTask -> {;
+                            usersRef.setValue(user).addOnCompleteListener(dbTask -> {
                                 if (dbTask.isSuccessful()) {
                                     Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-                                    Intent intent = new Intent(this, MainActivity.class);
+                                    Intent intent = new Intent(this, HomeActivity.class);
                                     startActivity(intent);
                                 } else {
                                     Toast.makeText(this, "Failed to save profile", Toast.LENGTH_LONG).show();
