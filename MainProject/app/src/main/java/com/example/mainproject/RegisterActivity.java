@@ -194,7 +194,8 @@ public class RegisterActivity extends AppCompatActivity {
                             Toast.makeText(this, "Failed to obtain user information", Toast.LENGTH_LONG).show();
                         }
                     } else {
-                        Toast.makeText(this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                        Toast.makeText(this, "Registeration failed: " + errorMsg, Toast.LENGTH_LONG).show();
                     }
                 });
     }

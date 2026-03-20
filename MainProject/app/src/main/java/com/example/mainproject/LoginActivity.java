@@ -42,15 +42,15 @@ public class LoginActivity extends AppCompatActivity {
      * Validates the email and password inputs.
     */
     public void loginValidation(View view) {
-        String name_email = emailInput.getText().toString().trim();
+        String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
 
-        if (!emailValidation(name_email) || !passwordValidation(password)) {
+        if (!emailValidation(email) || !passwordValidation(password)) {
             return;
         }
         loginButton.setEnabled(false);
 
-        myAuth.signInWithEmailAndPassword(name_email, password)
+        myAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
 
                     loginButton.setEnabled(true);
@@ -60,9 +60,8 @@ public class LoginActivity extends AppCompatActivity {
                         Intent intent = new Intent(this, HomeActivity.class);
                         startActivity(intent);
                     } else {
-                        Toast.makeText(this,
-                                "Login failed: " + task.getException().getMessage(),
-                                Toast.LENGTH_LONG).show();
+                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                        Toast.makeText(this, "Login failed: " + errorMsg, Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -72,12 +71,17 @@ public class LoginActivity extends AppCompatActivity {
      * Checks if the email or username field is not empty.
      * If null, sets an error message on the email or username input field and requests focus.
      *
-     * @param name_email The email/username string to validate.
+     * @param email The email/username string to validate.
      * @return true if the email/username is valid, false otherwise.
      */
-    public boolean emailValidation(String name_email) {
-        if (name_email.isEmpty()) {
-            emailInput.setError("Email or username is required");
+    public boolean emailValidation(String email) {
+        if (email.isEmpty()) {
+            emailInput.setError("Email is required");
+            emailInput.requestFocus();
+            return false;
+        }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailInput.setError("Enter a valid email address");
             emailInput.requestFocus();
             return false;
         }
