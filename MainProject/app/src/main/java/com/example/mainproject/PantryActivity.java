@@ -8,5 +8,6 @@ public class PantryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle("Pantry");
+        setContentView(R.layout.activity_pantry);
     }
 }
