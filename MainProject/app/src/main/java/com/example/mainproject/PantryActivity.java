@@ -64,6 +64,8 @@ public class PantryActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError error) {
+                //required for ValueEventListener. I left it empty for now, so if firebase fails to read data
+                //nothing happens. Don't remove as it wont compile then
             }
         });
     }
