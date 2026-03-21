@@ -39,25 +39,35 @@ public class PantryFragment extends Fragment {
 
         Button btnAdd = view.findViewById(R.id.btnAddIngredient);
         ListView listView = view.findViewById(R.id.listViewIngredients);
-
+        
         ArrayList<String> ingredientList = new ArrayList<>();
+        ArrayList<String> fbPantryKeyList = new ArrayList<>();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_list_item_1, ingredientList);
         listView.setAdapter(adapter);
 
         btnAdd.setOnClickListener(v -> showAddIngredientDialog());
 
+        listView.setOnItemClickListener((parent, v, position, id) -> {
+            String key = fbPantryKeyList.get(position);
+            showEditIngredientDialog(key);
+        });
+
         DatabaseReference pantryRef =  database.getReference("users").child(uid).child("pantry");
         pantryRef.addValueEventListener(new ValueEventListener() {
+
+            // Clears both lists to avoid duplicates and then rebuilds
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 ingredientList.clear();
+                fbPantryKeyList.clear();
                 for (DataSnapshot item : snapshot.getChildren()) {
                     String name = item.child("name").getValue(String.class);
                     String quantity = item.child("quantity").getValue(String.class);
                     String unit = item.child("unit").getValue(String.class);
                     String expiration = item.child("expiration").getValue(String.class);
                     ingredientList.add(name + " - " + quantity + " " + unit + " (expires: " + expiration + ")");
+                    fbPantryKeyList.add(item.getKey());
                 }
                 adapter.notifyDataSetChanged();
             }
@@ -66,7 +76,6 @@ public class PantryFragment extends Fragment {
             public void onCancelled(DatabaseError error) {
             }
         });
-
         return view;
     }
 
@@ -114,4 +123,75 @@ public class PantryFragment extends Fragment {
                 .setNegativeButton("Cancel", null)
                 .show();
     }
+
+    private void showEditIngredientDialog(String key) {
+        DatabaseReference itemRef = database.getReference("users").child(uid).child("pantry").child(key);
+
+        itemRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                String currentName = snapshot.child("name").getValue(String.class);
+                String currentQuantity = snapshot.child("quantity").getValue(String.class);
+                String currentUnit = snapshot.child("unit").getValue(String.class);
+                String currentExpiration = snapshot.child("expiration").getValue(String.class);
+
+                LinearLayout layout = new LinearLayout(requireContext());
+                layout.setOrientation(LinearLayout.VERTICAL);
+                layout.setPadding(50, 40, 50, 10);
+
+                EditText nameInput = new EditText(requireContext());
+                nameInput.setText(currentName);
+                layout.addView(nameInput);
+
+                EditText quantityInput = new EditText(requireContext());
+                quantityInput.setText(currentQuantity);
+                layout.addView(quantityInput);
+
+                EditText unitInput = new EditText(requireContext());
+                unitInput.setText(currentUnit);
+                layout.addView(unitInput);
+
+                EditText expirationInput = new EditText(requireContext());
+                expirationInput.setText(currentExpiration);
+                layout.addView(expirationInput);
+
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Edit Ingredient")
+                        .setView(layout)
+                        .setPositiveButton("Save", (dialog, which) -> {
+                            String name = nameInput.getText().toString().trim();
+                            String quantity = quantityInput.getText().toString().trim();
+                            String unit = unitInput.getText().toString().trim();
+                            String expiration = expirationInput.getText().toString().trim();
+
+                            if (name.isEmpty()) {
+                                return;
+                            }
+
+                            itemRef.child("name").setValue(name);
+                            itemRef.child("quantity").setValue(quantity);
+                            itemRef.child("unit").setValue(unit);
+                            itemRef.child("expiration").setValue(expiration);
+                        })
+                        // Delete function
+                        .setNeutralButton("Delete", (dialog, which) -> {
+                            new AlertDialog.Builder(requireContext())
+                                    .setTitle("Delete Ingredient")
+                                    .setMessage("Are you sure?")
+                                    .setPositiveButton("Yes", (d, w) -> {
+                                        itemRef.removeValue();
+                                    })
+                                    .setNegativeButton("No", null)
+                                    .show();
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+            }
+        });
+    }
+
 }
