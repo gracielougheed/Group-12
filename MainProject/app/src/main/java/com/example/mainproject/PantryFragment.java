@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Spinner;
+import android.app.DatePickerDialog;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
@@ -21,6 +23,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class PantryFragment extends Fragment {
 
@@ -92,13 +95,23 @@ public class PantryFragment extends Fragment {
         quantityInput.setHint("Quantity");
         layout.addView(quantityInput);
 
-        EditText unitInput = new EditText(requireContext());
-        unitInput.setHint("Unit (e.g. lbs, cups)");
-        layout.addView(unitInput);
+        String[] units = {"grams", "kg", "lbs", "oz", "cups", "tbsp", "tsp", "ml", "liters"};
+        Spinner unitSpinner = new Spinner(requireContext());
+        ArrayAdapter<String> unitAdapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_dropdown_item, units);
+        unitSpinner.setAdapter(unitAdapter);
+        layout.addView(unitSpinner);
 
-        EditText expirationInput = new EditText(requireContext());
-        expirationInput.setHint("Expiration date");
-        layout.addView(expirationInput);
+        Button expirationButton = new Button(requireContext());
+        expirationButton.setText("Select Expiration Date");
+        expirationButton.setOnClickListener(view -> {
+            Calendar cal = Calendar.getInstance();
+            new DatePickerDialog(requireContext(), (picker, year, month, day) -> {
+                String date = String.format("%02d-%02d-%02d", day, month + 1, year % 100);
+                expirationButton.setText(date);
+            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
+        });
+        layout.addView(expirationButton);
 
         new AlertDialog.Builder(requireContext())
                 .setTitle("Add Ingredient")
@@ -106,8 +119,8 @@ public class PantryFragment extends Fragment {
                 .setPositiveButton("Save", (dialog, which) -> {
                     String name = nameInput.getText().toString().trim();
                     String quantity = quantityInput.getText().toString().trim();
-                    String unit = unitInput.getText().toString().trim();
-                    String expiration = expirationInput.getText().toString().trim();
+                    String unit = unitSpinner.getSelectedItem().toString();
+                    String expiration = expirationButton.getText().toString();
 
                     if (name.isEmpty()) {
                         return;
@@ -147,13 +160,31 @@ public class PantryFragment extends Fragment {
                 quantityInput.setText(currentQuantity);
                 layout.addView(quantityInput);
 
-                EditText unitInput = new EditText(requireContext());
-                unitInput.setText(currentUnit);
-                layout.addView(unitInput);
+                String[] units = {"grams", "kg", "lbs", "oz", "cups", "tbsp", "tsp", "ml", "liters"};
+                Spinner unitSpinner = new Spinner(requireContext());
+                ArrayAdapter<String> unitAdapter = new ArrayAdapter<>(requireContext(),
+                        android.R.layout.simple_spinner_dropdown_item, units);
+                unitSpinner.setAdapter(unitAdapter);
+                // Pre-select the saved unit
+                for (int i = 0; i < units.length; i++) {
+                    if (units[i].equals(currentUnit)) {
+                        unitSpinner.setSelection(i);
+                        break;
+                    }
+                }
+                layout.addView(unitSpinner);
 
-                EditText expirationInput = new EditText(requireContext());
-                expirationInput.setText(currentExpiration);
-                layout.addView(expirationInput);
+                Button expirationButton = new Button(requireContext());
+                expirationButton.setText("Select Expiration Date");
+                expirationButton.setText(currentExpiration);
+                expirationButton.setOnClickListener(view -> {
+                    Calendar cal = Calendar.getInstance();
+                    new DatePickerDialog(requireContext(), (picker, year, month, day) -> {
+                        String date = String.format("%02d-%02d-%02d", day, month + 1, year % 100);
+                        expirationButton.setText(date);
+                    }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
+                });
+                layout.addView(expirationButton);
 
                 new AlertDialog.Builder(requireContext())
                         .setTitle("Edit Ingredient")
@@ -161,13 +192,12 @@ public class PantryFragment extends Fragment {
                         .setPositiveButton("Save", (dialog, which) -> {
                             String name = nameInput.getText().toString().trim();
                             String quantity = quantityInput.getText().toString().trim();
-                            String unit = unitInput.getText().toString().trim();
-                            String expiration = expirationInput.getText().toString().trim();
+                            String unit = unitSpinner.getSelectedItem().toString();
+                            String expiration = expirationButton.getText().toString();
 
                             if (name.isEmpty()) {
                                 return;
                             }
-
                             itemRef.child("name").setValue(name);
                             itemRef.child("quantity").setValue(quantity);
                             itemRef.child("unit").setValue(unit);
@@ -187,11 +217,9 @@ public class PantryFragment extends Fragment {
                         .setNegativeButton("Cancel", null)
                         .show();
             }
-
             @Override
             public void onCancelled(DatabaseError error) {
             }
         });
     }
-
 }
