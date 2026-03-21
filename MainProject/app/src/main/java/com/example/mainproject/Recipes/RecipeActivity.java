@@ -23,14 +23,22 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class RecipeActivity extends AppCompatActivity {
-
+    // Firebase
     FirebaseDatabase database = FirebaseDatabase.getInstance(
             "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/"
     );
     private FirebaseAuth myAuth;
+
+    // UI references
     private EditText recipeTitle;
     private EditText recipeDesc;
     private Spinner recipeCategory;
+    private EditText recipePrepTime;
+    private Spinner recipePrepUnits;
+    private EditText recipeCookTime;
+    private Spinner recipeCookUnits;
+    private EditText recipeServingSize;
+    private Spinner recipeDifficultyLevel;
 
     private Button saveButton;
 
@@ -65,7 +73,8 @@ public class RecipeActivity extends AppCompatActivity {
         }
         saveButton.setEnabled(false);
 
-        Recipe recipe = new Recipe(title, desc);
+        Recipe recipe = new Recipe(recipeId, title, desc, category, prepTimeValue,
+                prepTimeUnit, cookTimeValue, cookTimeUnit, servingSize, difficultyLevel);
         writeRecipe(recipe);
         saveButton.setEnabled(true);
         Intent intent = new Intent(this, HomeActivity.class);

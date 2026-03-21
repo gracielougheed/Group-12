@@ -80,7 +80,8 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:padding="10dp" >
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -98,11 +99,84 @@
                 android:spinnerMode="dropdown"/>
             </LinearLayout>
 
+            <!-- Container for Prep Time Quantity -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
+
+                <EditText
+                    android:id="@+id/recipePrepTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Recipe Prep Time" />
+
+                <Spinner
+                    android:id="@+id/recipePrepTimeUnits"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:spinnerMode="dropdown"
+                    android:padding="10dp"/>
+            </LinearLayout>
+
+            <!-- Container for Cook Time Quantity -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
+
+                <EditText
+                    android:id="@+id/recipeCookTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Recipe Cook Time" />
+
+                <Spinner
+                    android:id="@+id/recipeCookTimeUnits"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:spinnerMode="dropdown"
+                    android:padding="10dp"/>
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/recipeServingSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto"
+                android:hint="Enter Recipe Serving Size" />
+
+            <!-- Container for Difficulty Level -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:text="Recipe Difficulty Level   "
+                    android:textSize="18sp"
+                    android:textStyle="normal" />
+
+                <Spinner
+                    android:id="@+id/recipeDifficultyLevel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:spinnerMode="dropdown"
+                    android:padding="10dp" />
+            </LinearLayout>
+
             <Button
                 android:id="@+id/addRecipeButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:layout_marginTop="24dp"
                 android:layout_marginBottom="24dp"
                 android:text="Save Recipe"
                 android:backgroundTint="#73AF6F"
