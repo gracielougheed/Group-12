@@ -34,9 +34,9 @@ public class RecipeActivity extends AppCompatActivity {
     private EditText recipeDesc;
     private Spinner recipeCategory;
     private EditText recipePrepTime;
-    private Spinner recipePrepUnits;
+    private Spinner recipePrepTimeUnits;
     private EditText recipeCookTime;
-    private Spinner recipeCookUnits;
+    private Spinner recipeCookTimeUnits;
     private EditText recipeServingSize;
     private Spinner recipeDifficultyLevel;
 
@@ -52,15 +52,46 @@ public class RecipeActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        Spinner recipeCategory = findViewById(R.id.recipeCategory);
-        ArrayAdapter<CharSequence> adapter=ArrayAdapter.createFromResource(this, R.array.categories, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
-        recipeCategory.setAdapter(adapter);
 
+        // Firebase auth
         myAuth = FirebaseAuth.getInstance();
+
+        // Find all views
         recipeTitle = findViewById(R.id.recipeTitle);
         recipeDesc = findViewById(R.id.recipeDesc);
+        recipeCategory = findViewById(R.id.recipeCategory);
+        recipePrepTime = findViewById(R.id.recipePrepTime);
+        recipePrepTimeUnits = findViewById(R.id.recipePrepTimeUnits);
+        recipeCookTime = findViewById(R.id.recipeCookTime);
+        recipeCookTimeUnits = findViewById(R.id.recipeCookTimeUnits);
+        recipeServingSize = findViewById(R.id.recipeServingSize);
+        recipeDifficultyLevel = findViewById(R.id.recipeDifficultyLevel);
         saveButton = findViewById(R.id.addRecipeButton);
+
+        // Set up Spinners
+        setupCategorySpinner();
+        setupTimeUnitSpinners();
+        setupDifficultySpinner();
+    }
+
+    private void setupCategorySpinner() {
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this, R.array.categories, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        recipeCategory.setAdapter(adapter);
+    }
+
+    private void setupTimeUnitSpinners() {
+        ArrayAdapter<CharSequence> timeAdapter = ArrayAdapter.createFromResource(
+                this, R.array.time_units, android.R.layout.simple_spinner_item);
+        timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        recipePrepTimeUnits.setAdapter(timeAdapter);
+        recipeCookTimeUnits.setAdapter(timeAdapter);
+    }
+
+    private void setupDifficultySpinner() {
+        ArrayAdapter<CharSequence> difficultyAdapter = ArrayAdapter.createFromResource(
+                this, R.array.difficulty_levels, android.R.layout.simple_spinner_item);
 
     }
 
