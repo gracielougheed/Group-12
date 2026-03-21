@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.mainproject.HomeActivity;
 import com.example.mainproject.R;
+import com.example.mainproject.entities.Recipe;
 
 public class RecipeActivity extends AppCompatActivity {
 
@@ -31,6 +32,14 @@ public class RecipeActivity extends AppCompatActivity {
         ArrayAdapter<CharSequence> adapter=ArrayAdapter.createFromResource(this, R.array.categories, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
         spinnerCategories.setAdapter(adapter);
+    }
+
+    public void recipeValidation(){
+        //will take inputs from recipe form and validate them and create a recipe object using them
+    }
+
+    public void saveRecipe(View view){
+        //will take a recipe object and write it to the database
     }
 
     public void goBack(View view){

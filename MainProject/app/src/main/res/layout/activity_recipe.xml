@@ -93,7 +93,15 @@
                 android:spinnerMode="dropdown"/>
             </LinearLayout>
 
-
+            <Button
+                android:id="@+id/addRecipeButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="24dp"
+                android:text="Save Recipe"
+                android:backgroundTint="#73AF6F"
+                android:onClick="saveRecipe" />
         </LinearLayout>
     </LinearLayout>
 
