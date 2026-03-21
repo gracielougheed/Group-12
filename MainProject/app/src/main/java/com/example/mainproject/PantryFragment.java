@@ -1,64 +1,117 @@
 package com.example.mainproject;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link PantryFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.ArrayList;
+
 public class PantryFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public PantryFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment PantryFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static PantryFragment newInstance(String param1, String param2) {
-        PantryFragment fragment = new PantryFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
+    private String uid;
+    FirebaseDatabase database = FirebaseDatabase.getInstance(
+            "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/"
+    );
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_pantry, container, false);
+                             Bundle savedInstanceState){
+        // Get current users ID
+        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        View view = inflater.inflate(R.layout.fragment_pantry, container, false);
+
+        Button btnAdd = view.findViewById(R.id.btnAddIngredient);
+        ListView listView = view.findViewById(R.id.listViewIngredients);
+
+        ArrayList<String> ingredientList = new ArrayList<>();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_list_item_1, ingredientList);
+        listView.setAdapter(adapter);
+
+        btnAdd.setOnClickListener(v -> showAddIngredientDialog());
+
+        DatabaseReference pantryRef =  database.getReference("users").child(uid).child("pantry");
+        pantryRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                ingredientList.clear();
+                for (DataSnapshot item : snapshot.getChildren()) {
+                    String name = item.child("name").getValue(String.class);
+                    String quantity = item.child("quantity").getValue(String.class);
+                    String unit = item.child("unit").getValue(String.class);
+                    String expiration = item.child("expiration").getValue(String.class);
+                    ingredientList.add(name + " - " + quantity + " " + unit + " (expires: " + expiration + ")");
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+            }
+        });
+
+        return view;
+    }
+
+    private void showAddIngredientDialog() {
+        LinearLayout layout = new LinearLayout(requireContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+
+        EditText nameInput = new EditText(requireContext());
+        nameInput.setHint("Ingredient name");
+        layout.addView(nameInput);
+
+        EditText quantityInput = new EditText(requireContext());
+        quantityInput.setHint("Quantity");
+        layout.addView(quantityInput);
+
+        EditText unitInput = new EditText(requireContext());
+        unitInput.setHint("Unit (e.g. lbs, cups)");
+        layout.addView(unitInput);
+
+        EditText expirationInput = new EditText(requireContext());
+        expirationInput.setHint("Expiration date");
+        layout.addView(expirationInput);
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Add Ingredient")
+                .setView(layout)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String name = nameInput.getText().toString().trim();
+                    String quantity = quantityInput.getText().toString().trim();
+                    String unit = unitInput.getText().toString().trim();
+                    String expiration = expirationInput.getText().toString().trim();
+
+                    if (name.isEmpty()) {
+                        return;
+                    }
+
+                    DatabaseReference pantryRef =  database.getReference("users").child(uid).child("pantry");
+                    DatabaseReference newItem = pantryRef.push();
+                    newItem.child("name").setValue(name);
+                    newItem.child("quantity").setValue(quantity);
+                    newItem.child("unit").setValue(unit);
+                    newItem.child("expiration").setValue(expiration);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }
