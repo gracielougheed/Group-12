@@ -1,10 +1,16 @@
 package com.example.mainproject;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+
+import com.example.mainproject.Recipes.RecipeActivity;
+import com.example.mainproject.Recipes.RecipesFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -49,5 +55,10 @@ public class HomeActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+    public void addRecipe(View view){
+        Intent intent = new Intent(this, RecipeActivity.class);
+        startActivity(intent);
     }
 }
