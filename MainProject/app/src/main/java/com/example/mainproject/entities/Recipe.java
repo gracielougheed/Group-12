@@ -8,9 +8,8 @@ public class Recipe {
 
     public Recipe() {}
 
-    public Recipe(String title, String description, String category) {
+    public Recipe(String title, String description) {
         this.title = title;
         this.description = description;
-        this.category = category;
     }
 }
