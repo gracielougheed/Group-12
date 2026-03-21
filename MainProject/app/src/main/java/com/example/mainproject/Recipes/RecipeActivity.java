@@ -35,12 +35,19 @@ public class RecipeActivity extends AppCompatActivity {
     }
 
     public void recipeValidation(){
-        //will take inputs from recipe form and validate them and create a recipe object using them
+        //will take inputs from recipe form and validate them
     }
 
     public void saveRecipe(View view){
-        //will take a recipe object and write it to the database
+        //call recipe validation to validate recipes
+        //create recipe object from recipe form
+        //then call writeRecipe to write to the databse
     }
+
+    public void writeRecipe(Recipe recipe){
+        //write recipe to database
+    }
+
 
     public void goBack(View view){
         Intent intent = new Intent(this, HomeActivity.class);
