@@ -5,9 +5,12 @@ import android.os.Bundle;
 import android.text.InputFilter;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -19,11 +22,15 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.mainproject.HomeActivity;
 import com.example.mainproject.R;
 import com.example.mainproject.entities.Recipe;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecipeActivity extends AppCompatActivity {
     // Firebase
@@ -42,6 +49,11 @@ public class RecipeActivity extends AppCompatActivity {
     private Spinner recipeCookTimeUnits;
     private EditText recipeServingSize;
     private Spinner recipeDifficultyLevel;
+    private AutoCompleteTextView customTagsText;
+    private ChipGroup tagChipGroup;
+    private Switch recipeVisibilitySwitch;
+    private TextView privateLabel;
+    private TextView publicLabel;
 
     private Button saveButton;
 
@@ -69,6 +81,11 @@ public class RecipeActivity extends AppCompatActivity {
         recipeCookTimeUnits = findViewById(R.id.recipeCookTimeUnits);
         recipeServingSize = findViewById(R.id.recipeServingSize);
         recipeDifficultyLevel = findViewById(R.id.recipeDifficultyLevel);
+        customTagsText = findViewById(R.id.customTagsText);
+        tagChipGroup = findViewById(R.id.tagChipGroup);
+        recipeVisibilitySwitch = findViewById(R.id.recipeVisibilitySwitch);
+        privateLabel = findViewById(R.id.privateLabel);
+        publicLabel = findViewById(R.id.publicLabel);
         saveButton = findViewById(R.id.addRecipeButton);
 
         recipePrepTime.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
@@ -78,6 +95,36 @@ public class RecipeActivity extends AppCompatActivity {
         recipePrepTime.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(4) });
         recipeCookTime.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(4) });
         recipeServingSize.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(3) });
+
+        ArrayAdapter<String> tagAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line,
+                getResources().getStringArray(R.array.suggested_tags));
+        customTagsText.setAdapter(tagAdapter);
+
+        customTagsText.setOnItemClickListener((parent, view, position, id) -> {
+            String tag = parent.getItemAtPosition(position).toString();
+            addTagChip(tag);
+            customTagsText.setText("");
+        });
+
+        customTagsText.setOnEditorActionListener((v, actionId, event) -> {
+            String tag = customTagsText.getText().toString().trim();
+            if(!tag.isEmpty()) {
+                addTagChip(tag);
+                customTagsText.setText("");
+            }
+            return true;
+        });
+
+        recipeVisibilitySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                publicLabel.setTextColor(getResources().getColor(R.color.green));
+                privateLabel.setTextColor(getResources().getColor(R.color.black));
+            } else {
+                privateLabel.setTextColor(getResources().getColor(R.color.green));
+                publicLabel.setTextColor(getResources().getColor(R.color.black));
+            }
+        });
 
         // Set up Spinners
         setupCategorySpinner();
@@ -105,6 +152,18 @@ public class RecipeActivity extends AppCompatActivity {
                 this, R.array.difficulty_levels, android.R.layout.simple_spinner_item);
         difficultyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         recipeDifficultyLevel.setAdapter(difficultyAdapter);
+    }
+
+    private void addTagChip(String tag) {
+        Chip chip = new Chip(this);
+        chip.setText(tag);
+        chip.setCloseIconVisible(true);
+        chip.setCheckable(false);
+        chip.setClickable(false);
+
+        chip.setOnCloseIconClickListener(v -> tagChipGroup.removeView(chip));
+
+        tagChipGroup.addView(chip);
     }
 
     public void saveRecipe(View view){
@@ -153,9 +212,17 @@ public class RecipeActivity extends AppCompatActivity {
             return;
         }
 
+        List<String> tags = new ArrayList<>();
+        for (int i = 0; i < tagChipGroup.getChildCount(); i++) {
+            Chip chip =(Chip) tagChipGroup.getChildAt(i);
+            tags.add(chip.getText().toString());
+        }
+
+        boolean isPublic = recipeVisibilitySwitch.isChecked();
+
         // Build recipe object
         Recipe recipe = new Recipe(recipeId, title, desc, category, prepTimeValue,
-                prepTimeUnit, cookTimeValue, cookTimeUnit, servingSize, difficultyLevel);
+                prepTimeUnit, cookTimeValue, cookTimeUnit, servingSize, difficultyLevel, isPublic, tags);
 
         // Write to Firebase
         recipesRef.child(recipeId).setValue(recipe).addOnSuccessListener(unused -> {

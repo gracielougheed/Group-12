@@ -171,14 +171,29 @@
                     android:padding="10dp" />
             </LinearLayout>
 
-            <!-- Custom Tags -->
-            <AutoCompleteTextView
-                android:id="@+id/customTagsTextBox"
+            <!-- Container for Custom Tags -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter or Select Recipe Tags"
-                android:inputType="text"
-                android:fontFamily="@font/roboto" />
+                android:orientation="vertical">
+
+                <AutoCompleteTextView
+                    android:id="@+id/customTagsText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter or Select Recipe Tags"
+                    android:inputType="text"
+                    android:fontFamily="@font/roboto"
+                    android:imeOptions="actionDone" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/tagChipGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="8dp"
+                    app:singleLine="false"
+                    app:chipSpacing="8dp" />
+            </LinearLayout>
 
             <!-- Container for Public/Private -->
             <LinearLayout
@@ -195,6 +210,7 @@
                     android:textSize="18sp"
                     android:textStyle="normal"
                     android:layout_marginEnd="12dp" />
+
                 <TextView
                     android:id="@+id/privateLabel"
                     android:layout_width="wrap_content"

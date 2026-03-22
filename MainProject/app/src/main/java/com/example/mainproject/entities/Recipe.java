@@ -1,5 +1,7 @@
 package com.example.mainproject.entities;
 
+import java.util.List;
+
 public class Recipe {
     public String recipeId;
     public String title;
@@ -11,11 +13,14 @@ public class Recipe {
     public String cookTimeUnit;
     public int servingSize;
     public int difficultyLevel;
+    public boolean isPublic;
+    public List<String> tags;
 
     public Recipe() {}
 
     public Recipe(String recipeId, String title, String description, String category, int prepTimeValue,
-                  String prepTimeUnit, int cookTimeValue, String cookTimeUnit, int servingSize, int difficultyLevel) {
+                  String prepTimeUnit, int cookTimeValue, String cookTimeUnit, int servingSize,
+                  int difficultyLevel, boolean isPublic, List<String> tags) {
         this.recipeId = recipeId;
         this.title = title;
         this.description = description;
@@ -26,5 +31,7 @@ public class Recipe {
         this.cookTimeUnit = cookTimeUnit;
         this.servingSize = servingSize;
         this.difficultyLevel = difficultyLevel;
+        this.isPublic = isPublic;
+        this.tags = tags;
     }
 }
