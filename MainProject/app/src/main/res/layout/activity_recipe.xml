@@ -87,7 +87,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/roboto"
-                    android:text="Recipe Category   "
+                    android:text="Recipe Category        "
                     android:textSize="18sp"
                     android:textStyle="normal" />
 
@@ -171,13 +171,62 @@
                     android:padding="10dp" />
             </LinearLayout>
 
+            <!-- Custom Tags -->
+            <AutoCompleteTextView
+                android:id="@+id/customTagsTextBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter or Select Recipe Tags"
+                android:inputType="text"
+                android:fontFamily="@font/roboto" />
+
+            <!-- Container for Public/Private -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:text="Recipe Visibility      "
+                    android:textSize="18sp"
+                    android:textStyle="normal"
+                    android:layout_marginEnd="12dp" />
+                <TextView
+                    android:id="@+id/privateLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Private"
+                    android:textSize="15sp"
+                    android:layout_marginEnd="8dp" />
+
+                <Switch
+                    android:id="@+id/recipeVisibilitySwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:showText="false"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/publicLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Public"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
+            <!-- Save Button -->
             <Button
                 android:id="@+id/addRecipeButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="24dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="20dp"
                 android:text="Save Recipe"
                 android:backgroundTint="#73AF6F"
                 android:onClick="saveRecipe" />
