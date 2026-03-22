@@ -22,6 +22,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.NumberFormat;
+
 public class RecipeActivity extends AppCompatActivity {
     // Firebase
     FirebaseDatabase database = FirebaseDatabase.getInstance(
@@ -92,31 +94,79 @@ public class RecipeActivity extends AppCompatActivity {
     private void setupDifficultySpinner() {
         ArrayAdapter<CharSequence> difficultyAdapter = ArrayAdapter.createFromResource(
                 this, R.array.difficulty_levels, android.R.layout.simple_spinner_item);
-
+        difficultyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        recipeDifficultyLevel.setAdapter(difficultyAdapter);
     }
 
     public void saveRecipe(View view){
-        String title = recipeTitle.getText().toString().trim();
-        String desc = recipeDesc.getText().toString().trim();
-
-        if (!recipeInfoValidation(title, desc)) {
-            return;
-        }
+        // Disable button to prevent invalid input
         saveButton.setEnabled(false);
 
+        // Read and trim text fields
+        String title = recipeTitle.getText().toString().trim();
+        String desc = recipeDesc.getText().toString().trim();
+        String category = (String) recipeCategory.getSelectedItem();
+        String prepTimeText = recipePrepTime.getText().toString().trim();
+        String cookTimeText = recipeCookTime.getText().toString().trim();
+        String servingSizeText = recipeServingSize.getText().toString().trim();
+        String prepTimeUnit = (String) recipePrepTimeUnits.getSelectedItem();
+        String cookTimeUnit = (String) recipeCookTimeUnits.getSelectedItem();
+        String difficultyText = (String) recipeDifficultyLevel.getSelectedItem();
+
+        // Validate all inputs
+        if (!validateInputs(title, desc, category, prepTimeText, prepTimeUnit, cookTimeText,
+                cookTimeUnit, servingSizeText, difficultyText)) {
+            saveButton.setEnabled(true);
+            return;
+        }
+
+        // Safe parsing (after validation)
+        int prepTimeValue = Integer.parseInt(prepTimeText);
+        int cookTimeValue = Integer.parseInt(cookTimeText);
+        int servingSize = Integer.parseInt(servingSizeText);
+        int difficultyLevel = Integer.parseInt(difficultyText);
+
+        // Ensure user is signed in
+        if (myAuth.getCurrentUser() == null) {
+            Toast.makeText(this, "Not signed in", Toast.LENGTH_SHORT).show();
+            saveButton.setEnabled(true);
+            return;
+        }
+
+        String uid = myAuth.getCurrentUser().getUid();
+        DatabaseReference recipesRef = database.getReference("users").child(uid).child("recipes");
+
+        // Generate a new key for this recipe
+        String recipeId = recipesRef.push().getKey();
+        if (recipeId == null) {
+            Toast.makeText(this, "Could not generate recipe ID", Toast.LENGTH_SHORT).show();
+            saveButton.setEnabled(true);
+            return;
+        }
+
+        // Build recipe object
         Recipe recipe = new Recipe(recipeId, title, desc, category, prepTimeValue,
                 prepTimeUnit, cookTimeValue, cookTimeUnit, servingSize, difficultyLevel);
-        writeRecipe(recipe);
-        saveButton.setEnabled(true);
-        Intent intent = new Intent(this, HomeActivity.class);
-        startActivity(intent);
+
+        // Write to Firebase
+        recipesRef.child(recipeId).setValue(recipe).addOnSuccessListener(unused -> {
+            Toast.makeText(this, "Recipe saved", Toast.LENGTH_SHORT).show();
+            saveButton.setEnabled(true);
+            startActivity(new Intent(this, HomeActivity.class));
+        }).addOnFailureListener(e -> {
+            android.util.Log.e("RecipeActivity", "Write failed", e);
+            Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            saveButton.setEnabled(true);
+        });
     }
 
         //call recipe validation to validate recipes
         //create recipe object from recipe form
         //then call writeRecipe to write to the databse
 
-    public boolean recipeInfoValidation(String title, String desc){
+    public boolean validateInputs(String title, String desc, String category, String prepTimeText,
+                                  String prepTimeUnit, String cookTimeText, String cookTimeUnit,
+                                  String servingSizeText, String difficultyText) {
         if (title.isEmpty()) {
             recipeTitle.setError("Title is required");
             recipeTitle.requestFocus();
@@ -127,6 +177,71 @@ public class RecipeActivity extends AppCompatActivity {
             recipeDesc.requestFocus();
             return false;
         }
+        if (category == null || category.equalsIgnoreCase("Select category")) {
+            Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show();
+            recipeCategory.requestFocus();
+            return false;
+        }
+
+        int prepTimeValue;
+        try {
+            prepTimeValue = Integer.parseInt(prepTimeText);
+        } catch (NumberFormatException e) {
+            recipePrepTime.setError("Enter a valid number");
+            recipePrepTime.requestFocus();
+            return false;
+        }
+        if (prepTimeValue < 0) {
+            recipePrepTime.setError("Prep time cannot be negative");
+            recipePrepTime.requestFocus();
+            return false;
+        }
+
+        int cookTimeValue;
+        try {
+            cookTimeValue = Integer.parseInt(cookTimeText);
+        } catch (NumberFormatException e) {
+            recipeCookTime.setError("Enter a valid number");
+            recipeCookTime.requestFocus();
+            return false;
+        }
+        if (cookTimeValue < 0) {
+            recipeCookTime.setError("Cook time cannot be negative");
+            recipeCookTime.requestFocus();
+            return false;
+        }
+
+        int servingSize;
+        try {
+            servingSize = Integer.parseInt(servingSizeText);
+        } catch (NumberFormatException e) {
+            recipeServingSize.setError("Enter a valid number");
+            recipeServingSize.requestFocus();
+            return false;
+        }
+        if (servingSize < 1) {
+            recipeServingSize.setError("Serving size must be at least 1");
+            recipeServingSize.requestFocus();
+            return false;
+        }
+
+        if (difficultyText == null || difficultyText.equalsIgnoreCase("Select difficulty")) {
+            Toast.makeText(this, "Please select a difficulty level", Toast.LENGTH_SHORT).show();
+            recipeDifficultyLevel.requestFocus();
+            return false;
+        }
+
+        if (prepTimeUnit == null || prepTimeUnit.isEmpty()) {
+            Toast.makeText(this, "Please select prep time units", Toast.LENGTH_SHORT).show();
+            recipePrepTimeUnits.requestFocus();
+            return false;
+        }
+        if (cookTimeUnit == null || cookTimeUnit.isEmpty()) {
+            Toast.makeText(this, "Please select cook time units", Toast.LENGTH_SHORT).show();
+            recipeCookTimeUnits.requestFocus();
+            return false;
+        }
+
         return true;
     }
 
