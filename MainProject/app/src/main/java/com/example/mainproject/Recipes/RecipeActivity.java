@@ -2,6 +2,7 @@ package com.example.mainproject.Recipes;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -69,6 +70,14 @@ public class RecipeActivity extends AppCompatActivity {
         recipeServingSize = findViewById(R.id.recipeServingSize);
         recipeDifficultyLevel = findViewById(R.id.recipeDifficultyLevel);
         saveButton = findViewById(R.id.addRecipeButton);
+
+        recipePrepTime.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        recipeCookTime.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        recipeServingSize.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+
+        recipePrepTime.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(4) });
+        recipeCookTime.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(4) });
+        recipeServingSize.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(3) });
 
         // Set up Spinners
         setupCategorySpinner();
@@ -187,7 +196,7 @@ public class RecipeActivity extends AppCompatActivity {
         try {
             prepTimeValue = Integer.parseInt(prepTimeText);
         } catch (NumberFormatException e) {
-            recipePrepTime.setError("Enter a valid number");
+            recipePrepTime.setError("Enter a whole number (0+)");
             recipePrepTime.requestFocus();
             return false;
         }
@@ -201,7 +210,7 @@ public class RecipeActivity extends AppCompatActivity {
         try {
             cookTimeValue = Integer.parseInt(cookTimeText);
         } catch (NumberFormatException e) {
-            recipeCookTime.setError("Enter a valid number");
+            recipeCookTime.setError("Enter a whole number (0+)");
             recipeCookTime.requestFocus();
             return false;
         }
@@ -215,12 +224,12 @@ public class RecipeActivity extends AppCompatActivity {
         try {
             servingSize = Integer.parseInt(servingSizeText);
         } catch (NumberFormatException e) {
-            recipeServingSize.setError("Enter a valid number");
+            recipeServingSize.setError("Enter a whole number (1+)");
             recipeServingSize.requestFocus();
             return false;
         }
         if (servingSize < 1) {
-            recipeServingSize.setError("Serving size must be at least 1");
+            recipeServingSize.setError("Serving size must be at least 1 person");
             recipeServingSize.requestFocus();
             return false;
         }
@@ -244,34 +253,6 @@ public class RecipeActivity extends AppCompatActivity {
 
         return true;
     }
-
-    public void writeRecipe(Recipe recipe) {
-        if (recipe == null) return;
-
-        if (myAuth.getCurrentUser() == null) {
-            Toast.makeText(this, "Not signed in", Toast.LENGTH_SHORT).show();
-            saveButton.setEnabled(true);
-            return;
-        }
-
-        String uid = myAuth.getCurrentUser().getUid();
-        DatabaseReference recipesRef = database.getReference("users")
-                .child(uid)
-                .child("recipes");
-
-        recipesRef.push().setValue(recipe)
-                .addOnSuccessListener(unused -> {
-                    Toast.makeText(this, "Recipe saved", Toast.LENGTH_SHORT).show();
-                    saveButton.setEnabled(true);
-                    startActivity(new Intent(this, HomeActivity.class));
-                })
-                .addOnFailureListener(e -> {
-                    android.util.Log.e("RecipeActivity", "Write failed", e);
-                    Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    saveButton.setEnabled(true);
-                });
-    }
-
 
     public void goBack(View view){
         Intent intent = new Intent(this, HomeActivity.class);
