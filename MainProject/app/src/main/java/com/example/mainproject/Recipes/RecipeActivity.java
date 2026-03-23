@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -379,6 +380,44 @@ public class RecipeActivity extends AppCompatActivity {
         return true;
     }
 
+    private void showAddInstructionDialog() {
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+
+        EditText instructionInput = new EditText(this);
+        instructionInput.setHint("Enter instruction step");
+        layout.addView(instructionInput);
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Add Instruction").setView(layout)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String text = instructionInput.getText().toString().trim();
+
+                    int nextOrder = instructionList.size() + 1;
+
+                    DatabaseReference newStep = instructionsRef.push();
+                    newStep.child("text").setValue(text);
+                    newStep.child("order").setValue(nextOrder);
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void showEditInstructionDialog(String key) {
+        DatabaseReference itemRef = instructionsRef.child(key);
+
+        itemRef.get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) return;
+
+            String currentText = task.getResult().child("text").getValue(String.class);
+
+            LinearLayout layout = new LinearLayout(this);
+            layout.setOrientation(LinearLayout.VERTICAL);
+            layout.setPadding(50, 40, 50, 10);
+
+            EditText instructionInput = new EditText(this);
+            //pick up later
+        })
+    }
     public void goBack(View view){
         Intent intent = new Intent(this, HomeActivity.class);
         startActivity(intent);
