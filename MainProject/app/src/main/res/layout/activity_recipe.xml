@@ -245,10 +245,33 @@
                 android:textStyle="normal"
                 android:layout_marginTop="36dp" />
 
+            <!-- Container for Adding Instructions -->
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal" >
+                android:layout_width="match_parent"
+                android:layout_height="260dp"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/instruction_box_border">
+
+                <Button
+                    android:id="@+id/btnAddInstruction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="+"
+                    android:backgroundTint="#73AF6F"
+                    android:layout_gravity="end"
+                    android:textSize="20sp" />
+
+                <ListView
+                    android:id="@+id/listViewInstructions"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:dividerHeight="1dp"
+                    android:layout_marginTop="12dp" />
+
 
             </LinearLayout>
 
@@ -256,13 +279,14 @@
             <Button
                 android:id="@+id/addRecipeButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="20dp"
                 android:text="Save Recipe"
                 android:backgroundTint="#73AF6F"
-                android:onClick="saveRecipe" />
+                android:onClick="saveRecipe"
+                android:textSize="19sp" />
         </LinearLayout>
     </LinearLayout>
     </ScrollView>
