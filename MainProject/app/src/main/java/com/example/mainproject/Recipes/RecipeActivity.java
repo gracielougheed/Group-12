@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -25,6 +26,8 @@ import com.example.mainproject.entities.Recipe;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -38,6 +41,7 @@ public class RecipeActivity extends AppCompatActivity {
             "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/"
     );
     private FirebaseAuth myAuth;
+    private DatabaseReference instructionsRef;
 
     // UI references
     private EditText recipeTitle;
@@ -54,6 +58,12 @@ public class RecipeActivity extends AppCompatActivity {
     private Switch recipeVisibilitySwitch;
     private TextView privateLabel;
     private TextView publicLabel;
+    private Button btnAddInstruction;
+    private ListView listViewInstructions;
+
+    private ArrayList<String> instructionList = new ArrayList<>();
+    private ArrayList<String> instructionKeyList = new ArrayList<>();
+    private ArrayAdapter<String> instructionAdapter;
 
     private Button saveButton;
 
@@ -130,6 +140,20 @@ public class RecipeActivity extends AppCompatActivity {
         setupCategorySpinner();
         setupTimeUnitSpinners();
         setupDifficultySpinner();
+
+        // Instructions UI
+        btnAddInstruction = findViewById(R.id.btnAddInstruction);
+        listViewInstructions = findViewById(R.id.listViewInstructions);
+
+        instructionAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, instructionList);
+        listViewInstructions.setAdapter(instructionAdapter);
+        instructionsRef = null;
+        btnAddInstruction.setOnClickListener(v -> showAddInstructionDialog());
+        listViewInstructions.setonItemClickListener((parent, view, position, id) -> {
+            String key = instructionKeyList.get(position);
+            showEditInstructionDialog(key);
+        });
     }
 
     private void setupCategorySpinner() {
@@ -211,6 +235,40 @@ public class RecipeActivity extends AppCompatActivity {
             saveButton.setEnabled(true);
             return;
         }
+
+        instructionsRef = recipesRef.child(recipeId.child("instructions"));
+        instructionsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                instructionList.clear();
+                instructionKeyList.clear();
+
+                ArrayList<DataSnapshot> steps = new ArrayList<>();
+                for (DataSnapshot step : snapshot.getChildren()) {
+                    steps.add(step);
+                }
+
+                // Sort by order
+                steps.sort((a, b) -> {
+                    Long orderA = a.child("order").getValue(Long.class);
+                    Long orderB = b.child("order").getValue(Long.class);
+                    return Long.compare(orderA, orderB);
+                });
+
+                for (DataSnapshot step : steps) {
+                    String text = step.child("text").getValue(String.class);
+                    Long order = step.child("order").getValue(Long.class);
+
+                    instructionList.add(order + ". " + text);
+                    instructionKeyList.add(step.getKey());
+                }
+
+                instructionAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {}
+        });
 
         List<String> tags = new ArrayList<>();
         for (int i = 0; i < tagChipGroup.getChildCount(); i++) {
