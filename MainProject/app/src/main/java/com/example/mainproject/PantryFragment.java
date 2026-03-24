@@ -11,6 +11,8 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.app.DatePickerDialog;
+import android.text.InputType;
+import android.text.InputFilter;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
@@ -24,10 +26,13 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 
 public class PantryFragment extends Fragment {
 
     private String uid;
+    private HashSet<String> ingredientNames = new HashSet<>();
+
     FirebaseDatabase database = FirebaseDatabase.getInstance(
             "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/"
     );
@@ -64,12 +69,14 @@ public class PantryFragment extends Fragment {
             public void onDataChange(DataSnapshot snapshot) {
                 ingredientList.clear();
                 fbPantryKeyList.clear();
+                ingredientNames.clear();
                 for (DataSnapshot item : snapshot.getChildren()) {
                     String name = item.child("name").getValue(String.class);
                     String quantity = item.child("quantity").getValue(String.class);
                     String unit = item.child("unit").getValue(String.class);
                     String expiration = item.child("expiration").getValue(String.class);
                     ingredientList.add(name + " - " + quantity + " " + unit + " (expires: " + expiration + ")");
+                    ingredientNames.add(name.toLowerCase());
                     fbPantryKeyList.add(item.getKey());
                 }
                 adapter.notifyDataSetChanged();
@@ -89,11 +96,14 @@ public class PantryFragment extends Fragment {
 
         EditText nameInput = new EditText(requireContext());
         nameInput.setHint("Ingredient name");
+        nameInput.setFilters(new InputFilter[]{new InputFilter.LengthFilter(50)});
         layout.addView(nameInput);
 
         EditText quantityInput = new EditText(requireContext());
         quantityInput.setHint("Quantity");
         layout.addView(quantityInput);
+        quantityInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+
 
         String[] units = {"grams", "kg", "lbs", "oz", "cups", "tbsp", "tsp", "ml", "liters"};
         Spinner unitSpinner = new Spinner(requireContext());
@@ -103,38 +113,60 @@ public class PantryFragment extends Fragment {
         layout.addView(unitSpinner);
 
         Button expirationButton = new Button(requireContext());
-        expirationButton.setText("Select Expiration Date");
+        Calendar cal = Calendar.getInstance();
+        String today = String.format("%02d-%02d-%02d", cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.YEAR) % 100);
+        expirationButton.setText(today);
         expirationButton.setOnClickListener(view -> {
-            Calendar cal = Calendar.getInstance();
-            new DatePickerDialog(requireContext(), (picker, year, month, day) -> {
+            DatePickerDialog dpd = new DatePickerDialog(requireContext(), (picker, year, month, day) -> {
                 String date = String.format("%02d-%02d-%02d", day, month + 1, year % 100);
                 expirationButton.setText(date);
-            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
+            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+            dpd.getDatePicker().setMinDate(System.currentTimeMillis());
+            dpd.show();
         });
+
         layout.addView(expirationButton);
 
-        new AlertDialog.Builder(requireContext())
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setTitle("Add Ingredient")
                 .setView(layout)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String name = nameInput.getText().toString().trim();
-                    String quantity = quantityInput.getText().toString().trim();
-                    String unit = unitSpinner.getSelectedItem().toString();
-                    String expiration = expirationButton.getText().toString();
-
-                    if (name.isEmpty()) {
-                        return;
-                    }
-
-                    DatabaseReference pantryRef =  database.getReference("users").child(uid).child("pantry");
-                    DatabaseReference newItem = pantryRef.push();
-                    newItem.child("name").setValue(name);
-                    newItem.child("quantity").setValue(quantity);
-                    newItem.child("unit").setValue(unit);
-                    newItem.child("expiration").setValue(expiration);
-                })
+                .setPositiveButton("Save", null)
                 .setNegativeButton("Cancel", null)
                 .show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String name = nameInput.getText().toString().trim();
+            String quantity = quantityInput.getText().toString().trim();
+            String unit = unitSpinner.getSelectedItem().toString();
+            String expiration = expirationButton.getText().toString();
+
+            if (name.isEmpty()) {
+                nameInput.setError("Required");
+                return;
+            }
+
+            if (quantity.isEmpty()) {
+                quantityInput.setError("Required");
+                return;
+            }
+            if (Double.parseDouble(quantity) <= 0) {
+                quantityInput.setError("Must be positive");
+                return;
+            }
+            if (ingredientNames.contains(name.toLowerCase())) {
+                nameInput.setError("Already exists");
+                return;
+            }
+
+
+            DatabaseReference pantryRef = database.getReference("users").child(uid).child("pantry");
+            DatabaseReference newItem = pantryRef.push();
+            newItem.child("name").setValue(name);
+            newItem.child("quantity").setValue(quantity);
+            newItem.child("unit").setValue(unit);
+            newItem.child("expiration").setValue(expiration);
+            dialog.dismiss();
+        });
     }
 
     private void showEditIngredientDialog(String key) {
@@ -154,11 +186,13 @@ public class PantryFragment extends Fragment {
 
                 EditText nameInput = new EditText(requireContext());
                 nameInput.setText(currentName);
+                nameInput.setFilters(new InputFilter[]{new InputFilter.LengthFilter(50)});
                 layout.addView(nameInput);
 
                 EditText quantityInput = new EditText(requireContext());
                 quantityInput.setText(currentQuantity);
                 layout.addView(quantityInput);
+                quantityInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
                 String[] units = {"grams", "kg", "lbs", "oz", "cups", "tbsp", "tsp", "ml", "liters"};
                 Spinner unitSpinner = new Spinner(requireContext());
@@ -175,47 +209,64 @@ public class PantryFragment extends Fragment {
                 layout.addView(unitSpinner);
 
                 Button expirationButton = new Button(requireContext());
-                expirationButton.setText("Select Expiration Date");
                 expirationButton.setText(currentExpiration);
                 expirationButton.setOnClickListener(view -> {
                     Calendar cal = Calendar.getInstance();
-                    new DatePickerDialog(requireContext(), (picker, year, month, day) -> {
+                    DatePickerDialog dpd = new DatePickerDialog(requireContext(), (picker, year, month, day) -> {
                         String date = String.format("%02d-%02d-%02d", day, month + 1, year % 100);
                         expirationButton.setText(date);
-                    }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
+                    }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+                    dpd.getDatePicker().setMinDate(System.currentTimeMillis());
+                    dpd.show();
                 });
+
                 layout.addView(expirationButton);
 
-                new AlertDialog.Builder(requireContext())
+                AlertDialog dialog = new AlertDialog.Builder(requireContext())
                         .setTitle("Edit Ingredient")
                         .setView(layout)
-                        .setPositiveButton("Save", (dialog, which) -> {
-                            String name = nameInput.getText().toString().trim();
-                            String quantity = quantityInput.getText().toString().trim();
-                            String unit = unitSpinner.getSelectedItem().toString();
-                            String expiration = expirationButton.getText().toString();
-
-                            if (name.isEmpty()) {
-                                return;
-                            }
-                            itemRef.child("name").setValue(name);
-                            itemRef.child("quantity").setValue(quantity);
-                            itemRef.child("unit").setValue(unit);
-                            itemRef.child("expiration").setValue(expiration);
-                        })
-                        // Delete function
-                        .setNeutralButton("Delete", (dialog, which) -> {
+                        .setPositiveButton("Save", null)
+                        .setNeutralButton("Delete", (d, which) -> {
                             new AlertDialog.Builder(requireContext())
                                     .setTitle("Delete Ingredient")
                                     .setMessage("Are you sure?")
-                                    .setPositiveButton("Yes", (d, w) -> {
-                                        itemRef.removeValue();
-                                    })
+                                    .setPositiveButton("Yes", (d2, w) -> itemRef.removeValue())
                                     .setNegativeButton("No", null)
                                     .show();
                         })
                         .setNegativeButton("Cancel", null)
                         .show();
+
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                    String name = nameInput.getText().toString().trim();
+                    String quantity = quantityInput.getText().toString().trim();
+                    String unit = unitSpinner.getSelectedItem().toString();
+                    String expiration = expirationButton.getText().toString();
+
+                    if (name.isEmpty()) {
+                        nameInput.setError("Required");
+                        return;
+                    }
+
+                    if (quantity.isEmpty()) {
+                        quantityInput.setError("Required");
+                        return;
+                    }
+                    if (Double.parseDouble(quantity) <= 0) {
+                        quantityInput.setError("Must be positive");
+                        return;
+                    }
+                    if (!name.equalsIgnoreCase(currentName) && ingredientNames.contains(name.toLowerCase())) {
+                        nameInput.setError("Already exists");
+                        return;
+                    }
+
+                    itemRef.child("name").setValue(name);
+                    itemRef.child("quantity").setValue(quantity);
+                    itemRef.child("unit").setValue(unit);
+                    itemRef.child("expiration").setValue(expiration);
+                    dialog.dismiss();
+                });
             }
             @Override
             public void onCancelled(DatabaseError error) {
