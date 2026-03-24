@@ -31,6 +31,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -151,7 +152,7 @@ public class RecipeActivity extends AppCompatActivity {
         listViewInstructions.setAdapter(instructionAdapter);
         instructionsRef = null;
         btnAddInstruction.setOnClickListener(v -> showAddInstructionDialog());
-        listViewInstructions.setonItemClickListener((parent, view, position, id) -> {
+        listViewInstructions.setOnItemClickListener((parent, view, position, id) -> {
             String key = instructionKeyList.get(position);
             showEditInstructionDialog(key);
         });
@@ -237,7 +238,7 @@ public class RecipeActivity extends AppCompatActivity {
             return;
         }
 
-        instructionsRef = recipesRef.child(recipeId.child("instructions"));
+        instructionsRef = recipesRef.child(recipeId).child("instructions");
         instructionsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
@@ -415,8 +416,50 @@ public class RecipeActivity extends AppCompatActivity {
             layout.setPadding(50, 40, 50, 10);
 
             EditText instructionInput = new EditText(this);
-            //pick up later
-        })
+            instructionInput.setText(currentText);
+            layout.addView(instructionInput);
+
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Edit Instruction").setView(layout)
+                    .setPositiveButton("Save", (dialog, which) -> {
+                        String newText = instructionInput.getText().toString().trim();
+                        if (newText.isEmpty()) return;
+
+                        itemRef.child("text").setValue(newText);
+                    }).setNeutralButton("Delete", (dialog, which) -> {
+                        new androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("Delete Step").setMessage("Are you sure?")
+                                .setPositiveButton("Yes", (d, w) -> {
+                                    itemRef.removeValue().addOnCompleteListener(done -> {
+                                        renumberInstructions();
+                                    });
+                                }).setNegativeButton("No", null).show();
+                    }).setNegativeButton("Cancel", null).show();
+        });
+    }
+
+    private void renumberInstructions() {
+        instructionsRef.get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) return;
+
+            ArrayList<DataSnapshot> steps = new ArrayList<>();
+            for (DataSnapshot step : task.getResult().getChildren()) {
+                steps.add(step);
+            }
+
+            // Sort by current order
+            steps.sort((a, b) -> {
+                Long orderA = a.child("order").getValue(Long.class);
+                Long orderB = b.child("order").getValue(Long.class);
+                return Long.compare(orderA, orderB);
+            });
+
+            int newOrder = 1;
+            for (DataSnapshot step : steps) {
+                step.getRef().child("order").setValue(newOrder);
+                newOrder++;
+            }
+        });
     }
     public void goBack(View view){
         Intent intent = new Intent(this, HomeActivity.class);
