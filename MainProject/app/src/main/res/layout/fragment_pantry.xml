@@ -4,7 +4,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="#FFFFFF"
+    android:padding="25dp">
 
     <Button
         android:id="@+id/btnAddIngredient"
@@ -13,7 +14,9 @@
         android:text="+"
         android:textSize="24sp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:backgroundTint="#73AF6F"
+        android:fontFamily="@font/roboto"/>
 
     <ListView
         android:id="@+id/listViewIngredients"
