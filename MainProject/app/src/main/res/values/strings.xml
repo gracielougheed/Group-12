@@ -17,4 +17,28 @@
         <item>Dessert</item>
         <item>Snack</item>
     </string-array>
+
+    <string-array name="time_units">
+        <item>Minutes</item>
+        <item>Hours</item>
+    </string-array>
+
+    <string-array name="difficulty_levels">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+
+    <string-array name="suggested_tags">
+        <item>Quick</item>
+        <item>Healthy</item>
+        <item>Vegetarian</item>
+        <item>Vegan</item>
+        <item>Gluten Free</item>
+        <item>High Protein</item>
+        <item>Cheap</item>
+        <item>Comfort Food</item>
+    </string-array>
 </resources>
