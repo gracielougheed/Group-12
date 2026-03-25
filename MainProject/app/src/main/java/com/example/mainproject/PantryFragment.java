@@ -7,12 +7,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.app.DatePickerDialog;
-import android.text.InputType;
-import android.text.InputFilter;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
@@ -113,34 +110,17 @@ public class PantryFragment extends Fragment {
      * The ingredient is saved to Firebase after passing validation.
      */
     private void showAddIngredientDialog() {
-        // Build the popup layout with input fields stacked vertically
-        LinearLayout layout = new LinearLayout(requireContext());
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50, 40, 50, 10);
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialoge_pantry_item, null);
+        EditText nameInput = dialogView.findViewById(R.id.input_name);
+        EditText quantityInput = dialogView.findViewById(R.id.input_quantity);
+        Spinner unitSpinner = dialogView.findViewById(R.id.spinner_unit);
+        Button expirationButton = dialogView.findViewById(R.id.button_expiration);
 
-        // Name field (max 50 characters)
-        EditText nameInput = new EditText(requireContext());
-        nameInput.setHint("Ingredient name");
-        nameInput.setFilters(new InputFilter[]{new InputFilter.LengthFilter(50)});
-        layout.addView(nameInput);
-
-        // Quantity field (numbers only)
-        EditText quantityInput = new EditText(requireContext());
-        quantityInput.setHint("Quantity");
-        layout.addView(quantityInput);
-        quantityInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-
-
-        // Dropdown for selecting a unit of measurement
         String[] units = {"grams", "kg", "lbs", "oz", "cups", "tbsp", "tsp", "ml", "liters"};
-        Spinner unitSpinner = new Spinner(requireContext());
         ArrayAdapter<String> unitAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_dropdown_item, units);
         unitSpinner.setAdapter(unitAdapter);
-        layout.addView(unitSpinner);
 
-        // Button that opens a date picker for choosing the expiration date
-        Button expirationButton = new Button(requireContext());
         Calendar cal = Calendar.getInstance();
         String today = String.format("%02d-%02d-%02d", cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.YEAR) % 100);
         expirationButton.setText(today);
@@ -153,12 +133,10 @@ public class PantryFragment extends Fragment {
             dpd.show();
         });
 
-        layout.addView(expirationButton);
-
         // Show the dialog with save and cancel buttons
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setTitle("Add Ingredient")
-                .setView(layout)
+                .setView(dialogView)
                 .setPositiveButton("Save", null)
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -220,24 +198,16 @@ public class PantryFragment extends Fragment {
                 String currentUnit = snapshot.child("unit").getValue(String.class);
                 String currentExpiration = snapshot.child("expiration").getValue(String.class);
 
-                // Build the popup layout
-                LinearLayout layout = new LinearLayout(requireContext());
-                layout.setOrientation(LinearLayout.VERTICAL);
-                layout.setPadding(50, 40, 50, 10);
+                View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialoge_pantry_item, null);
+                EditText nameInput = dialogView.findViewById(R.id.input_name);
+                EditText quantityInput = dialogView.findViewById(R.id.input_quantity);
+                Spinner unitSpinner = dialogView.findViewById(R.id.spinner_unit);
+                Button expirationButton = dialogView.findViewById(R.id.button_expiration);
 
-                EditText nameInput = new EditText(requireContext());
                 nameInput.setText(currentName);
-                nameInput.setFilters(new InputFilter[]{new InputFilter.LengthFilter(50)});
-                layout.addView(nameInput);
-
-                EditText quantityInput = new EditText(requireContext());
                 quantityInput.setText(currentQuantity);
-                layout.addView(quantityInput);
-                quantityInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-                // Unit dropdown, pre-selected to the saved unit
                 String[] units = {"grams", "kg", "lbs", "oz", "cups", "tbsp", "tsp", "ml", "liters"};
-                Spinner unitSpinner = new Spinner(requireContext());
                 ArrayAdapter<String> unitAdapter = new ArrayAdapter<>(requireContext(),
                         android.R.layout.simple_spinner_dropdown_item, units);
                 unitSpinner.setAdapter(unitAdapter);
@@ -247,10 +217,7 @@ public class PantryFragment extends Fragment {
                         break;
                     }
                 }
-                layout.addView(unitSpinner);
 
-                // Expiration date button, shows current date and opens a date picker
-                Button expirationButton = new Button(requireContext());
                 expirationButton.setText(currentExpiration);
                 expirationButton.setOnClickListener(view -> {
                     Calendar cal = Calendar.getInstance();
@@ -262,12 +229,10 @@ public class PantryFragment extends Fragment {
                     dpd.show();
                 });
 
-                layout.addView(expirationButton);
-
                 // Show the dialog with Save, Delete, and Cancel options
                 AlertDialog dialog = new AlertDialog.Builder(requireContext())
                         .setTitle("Edit Ingredient")
-                        .setView(layout)
+                        .setView(dialogView)
                         .setPositiveButton("Save", null)
                         .setNeutralButton("Delete", (d, which) -> {
                             // Ask for confirmation before deleting
