@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp" >
+
+    <EditText
+        android:id="@+id/editIngredientName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/ingredient_name_hint" />
+
+    <EditText
+        android:id="@+id/editIngredientQuantity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/ingredient_quantity_hint" />
+
+    <Spinner
+        android:id="@+id/spinnerIngredientUnit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/editCustomUnit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/ingredient_unit_hint"
+        android:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/spinnerPreparation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/editCustomPreparation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/ingredient_prep_hint"
+        android:visibility="gone" />
+
+</LinearLayout>
+

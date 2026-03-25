@@ -15,12 +15,15 @@ public class Recipe {
     public int difficultyLevel;
     public boolean isPublic;
     public List<String> tags;
+    public List<Ingredient> ingredients;
+    public List<String> cookware;
 
     public Recipe() {}
 
     public Recipe(String recipeId, String title, String description, String category, int prepTimeValue,
                   String prepTimeUnit, int cookTimeValue, String cookTimeUnit, int servingSize,
-                  int difficultyLevel, boolean isPublic, List<String> tags) {
+                  int difficultyLevel, boolean isPublic, List<String> tags,
+                  List<Ingredient> ingredients, List<String> cookware) {
         this.recipeId = recipeId;
         this.title = title;
         this.description = description;
@@ -33,5 +36,7 @@ public class Recipe {
         this.difficultyLevel = difficultyLevel;
         this.isPublic = isPublic;
         this.tags = tags;
+        this.ingredients = ingredients;
+        this.cookware = cookware;
     }
 }

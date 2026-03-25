@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -16,6 +17,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -23,6 +26,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.mainproject.HomeActivity;
 import com.example.mainproject.R;
+import com.example.mainproject.entities.Ingredient;
 import com.example.mainproject.entities.Recipe;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -62,10 +66,17 @@ public class RecipeActivity extends AppCompatActivity {
     private TextView publicLabel;
     private Button btnAddInstruction;
     private ListView listViewInstructions;
-
     private ArrayList<String> instructionList = new ArrayList<>();
     private ArrayList<String> instructionKeyList = new ArrayList<>();
     private ArrayAdapter<String> instructionAdapter;
+    private Button btnAddIngredient;
+    private ListView listviewIngredients;
+    private ArrayList<Ingredient> ingredientList = new ArrayList<>();
+    private ArrayList<String> ingredientDisplayList = new ArrayList<>();
+    private ArrayAdapter<String> ingredientAdapter;
+    private DatabaseReference ingredientsRef;
+    private AutoCompleteTextView cookwareText;
+    private ChipGroup cookwareChipGroup;
 
     private Button saveButton;
 
@@ -156,6 +167,44 @@ public class RecipeActivity extends AppCompatActivity {
             String key = instructionKeyList.get(position);
             showEditInstructionDialog(key);
         });
+
+        //Ingredients UI
+        btnAddIngredient = findViewById(R.id.btnAddIngredient);
+        listviewIngredients = findViewById(R.id.listViewIngredients);
+
+        ingredientAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, ingredientDisplayList);
+        listviewIngredients.setAdapter(ingredientAdapter);
+
+        btnAddIngredient.setOnClickListener(v -> showAddIngredientDialog());
+        listviewIngredients.setOnItemClickListener((parent, view, position, id) -> {
+            Ingredient ing = ingredientList.get(position);
+            showEditIngredientDialog(ing);
+        });
+
+        //Cookware UI
+        cookwareText = findViewById(R.id.cookwareText);
+        cookwareChipGroup = findViewById(R.id.cookwareChipGroup);
+
+        ArrayAdapter<String> cookwareAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line,
+                getResources().getStringArray(R.array.cookware_items));
+        cookwareText.setAdapter(cookwareAdapter);
+
+        cookwareText.setOnItemClickListener((parent, view, position, id) -> {
+            String item = parent.getItemAtPosition(position).toString();
+            addCookwareChip(item);
+            cookwareText.setText("");
+        });
+
+        cookwareText.setOnEditorActionListener((v, actionId, event) -> {
+            String item = cookwareText.getText().toString().trim();
+            if(!item.isEmpty()) {
+                addCookwareChip(item);
+                cookwareText.setText("");
+            }
+            return true;
+        });
     }
 
     private void setupCategorySpinner() {
@@ -206,6 +255,7 @@ public class RecipeActivity extends AppCompatActivity {
         String prepTimeUnit = (String) recipePrepTimeUnits.getSelectedItem();
         String cookTimeUnit = (String) recipeCookTimeUnits.getSelectedItem();
         String difficultyText = (String) recipeDifficultyLevel.getSelectedItem();
+
 
         // Validate all inputs
         if (!validateInputs(title, desc, category, prepTimeText, prepTimeUnit, cookTimeText,
@@ -272,6 +322,30 @@ public class RecipeActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError error) {}
         });
 
+        ingredientsRef = recipesRef.child(recipeId).child("ingredients");
+        ingredientsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                ingredientList.clear();
+                ingredientDisplayList.clear();
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    Ingredient ing = child.getValue(Ingredient.class);
+                    if (ing != null) {
+                        ingredientList.add(ing);
+                        String display = ing.quantity + " " + ing.unit + " " + ing.name;
+                        if (ing.prep != null && !ing.prep.isEmpty()) {
+                            display += " (" + ing.prep + ")";
+                        }
+                        ingredientDisplayList.add(display);
+                    }
+                }
+                ingredientAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
         List<String> tags = new ArrayList<>();
         for (int i = 0; i < tagChipGroup.getChildCount(); i++) {
             Chip chip =(Chip) tagChipGroup.getChildAt(i);
@@ -279,10 +353,13 @@ public class RecipeActivity extends AppCompatActivity {
         }
 
         boolean isPublic = recipeVisibilitySwitch.isChecked();
+        List<String> cookwareList = getCookwareFromChips();
+        ArrayList<Ingredient> ingredientsList = new ArrayList<>(ingredientList);
 
         // Build recipe object
         Recipe recipe = new Recipe(recipeId, title, desc, category, prepTimeValue,
-                prepTimeUnit, cookTimeValue, cookTimeUnit, servingSize, difficultyLevel, isPublic, tags);
+                prepTimeUnit, cookTimeValue, cookTimeUnit, servingSize, difficultyLevel,
+                isPublic, tags, ingredientsList, cookwareList);
 
         // Write to Firebase
         recipesRef.child(recipeId).setValue(recipe).addOnSuccessListener(unused -> {
@@ -461,6 +538,154 @@ public class RecipeActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void addCookwareChip(String text) {
+        Chip chip = new Chip(this);
+        chip.setText(text);
+        chip.setCloseIconVisible(true);
+        chip.setCheckable(false);
+        chip.setClickable(false);
+        chip.setOnCloseIconClickListener(v -> cookwareChipGroup.removeView(chip));
+        cookwareChipGroup.addView(chip);
+    }
+
+    private List<String> getCookwareFromChips() {
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < cookwareChipGroup.getChildCount(); i++) {
+            Chip chip = (Chip) cookwareChipGroup.getChildAt(i);
+            list.add(chip.getText().toString());
+        }
+        return list;
+    }
+
+    private void showAddIngredientDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_ingredient, null);
+
+        EditText nameEdit = dialogView.findViewById(R.id.editIngredientName);
+        EditText quantityEdit = dialogView.findViewById(R.id.editIngredientQuantity);
+        Spinner unitSpinner = dialogView.findViewById(R.id.spinnerIngredientUnit);
+        EditText customUnitEdit = dialogView.findViewById(R.id.editCustomUnit);
+        Spinner prepSpinner = dialogView.findViewById(R.id.spinnerPreparation);
+        EditText customPrepEdit = dialogView.findViewById(R.id.editCustomPreparation);
+
+        ArrayAdapter<CharSequence> unitAdapter = ArrayAdapter.createFromResource(
+                this, R.array.ingredient_units, android.R.layout.simple_spinner_item);
+        unitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        unitSpinner.setAdapter(unitAdapter);
+
+        ArrayAdapter<CharSequence> prepAdapter = ArrayAdapter.createFromResource(
+                this, R.array.preparation_styles, android.R.layout.simple_spinner_item);
+        prepAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        prepSpinner.setAdapter(prepAdapter);
+
+        unitSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                customUnitEdit.setVisibility(
+                        "Other".equals(parent.getItemAtPosition(position)) ? View.VISIBLE : View.GONE);
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        prepSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                customPrepEdit.setVisibility(
+                        "Other".equals(parent.getItemAtPosition(position)) ? View.VISIBLE : View.GONE);
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        builder.setView(dialogView)
+                .setTitle("Add Ingredient")
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String name = nameEdit.getText().toString().trim();
+                    String quantity = quantityEdit.getText().toString().trim();
+                    String unit = unitSpinner.getSelectedItem().toString();
+                    String prep = prepSpinner.getSelectedItem().toString();
+
+                    if ("Other".equals(unit)) unit = customUnitEdit.getText().toString().trim();
+                    if ("Other".equals(prep)) prep = customPrepEdit.getText().toString().trim();
+
+                    if (name.isEmpty() || quantity.isEmpty()) {
+                        Toast.makeText(this, "Name and quantity required", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    String id = ingredientsRef.push().getKey();
+                    Ingredient ing = new Ingredient(id, name, quantity, unit, prep);
+                    ingredientsRef.child(id).setValue(ing);
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void showEditIngredientDialog(Ingredient ing) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_ingredient, null);
+
+        EditText nameEdit = dialogView.findViewById(R.id.editIngredientName);
+        EditText quantityEdit = dialogView.findViewById(R.id.editIngredientQuantity);
+        Spinner unitSpinner = dialogView.findViewById(R.id.spinnerIngredientUnit);
+        EditText customUnitEdit = dialogView.findViewById(R.id.editCustomUnit);
+        Spinner prepSpinner = dialogView.findViewById(R.id.spinnerPreparation);
+        EditText customPrepEdit = dialogView.findViewById(R.id.editCustomPreparation);
+
+        ArrayAdapter<CharSequence> unitAdapter = ArrayAdapter.createFromResource(
+                this, R.array.ingredient_units, android.R.layout.simple_spinner_item);
+        unitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        unitSpinner.setAdapter(unitAdapter);
+
+        ArrayAdapter<CharSequence> prepAdapter = ArrayAdapter.createFromResource(
+                this, R.array.preparation_styles, android.R.layout.simple_spinner_item);
+        prepAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        prepSpinner.setAdapter(prepAdapter);
+
+        nameEdit.setText(ing.name);
+        quantityEdit.setText(ing.quantity);
+
+        int unitPos = unitAdapter.getPosition(ing.unit);
+        if (unitPos >= 0) {
+            unitSpinner.setSelection(unitPos);
+        } else {
+            unitSpinner.setSelection(unitAdapter.getPosition("Other"));
+            customUnitEdit.setVisibility(View.VISIBLE);
+            customUnitEdit.setText(ing.unit);
+        }
+
+        int prepPos = prepAdapter.getPosition(ing.prep);
+        if (prepPos >= 0) {
+            prepSpinner.setSelection(prepPos);
+        } else {
+            prepSpinner.setSelection(prepAdapter.getPosition("Other"));
+            customPrepEdit.setVisibility(View.VISIBLE);
+            customPrepEdit.setText(ing.prep);
+        }
+
+        builder.setView(dialogView)
+                .setTitle("Edit Ingredient")
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String name = nameEdit.getText().toString().trim();
+                    String quantity = quantityEdit.getText().toString().trim();
+                    String unit = unitSpinner.getSelectedItem().toString();
+                    String prep = prepSpinner.getSelectedItem().toString();
+
+                    if ("Other".equals(unit)) unit = customUnitEdit.getText().toString().trim();
+                    if ("Other".equals(prep)) prep = customPrepEdit.getText().toString().trim();
+
+                    ing.name = name;
+                    ing.quantity = quantity;
+                    ing.unit = unit;
+                    ing.prep = prep;
+
+                    ingredientsRef.child(ing.ingredientId).setValue(ing);
+                })
+                .setNegativeButton("Delete", (dialog, which) -> {
+                    ingredientsRef.child(ing.ingredientId).removeValue();
+                })
+                .show();
+    }
+
+
     public void goBack(View view){
         Intent intent = new Intent(this, HomeActivity.class);
         startActivity(intent);
