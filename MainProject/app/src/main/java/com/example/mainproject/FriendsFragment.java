@@ -27,5 +27,12 @@ public class FriendsFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_friends, container, false);
     }
 
-    public void searchFriends(View view){}
+    public void listFriends(){
+        //Populates list view with users friends
+    }
+
+    public void searchFriends(View view){
+        //Opens search friends dialog
+        //Will eventually lead to search and add friend functionality
+    }
 }
