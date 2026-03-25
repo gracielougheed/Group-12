@@ -467,18 +467,25 @@ public class RecipeActivity extends AppCompatActivity {
         instructionInput.setHint("Enter instruction step");
         layout.addView(instructionInput);
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Add Instruction").setView(layout)
+        new AlertDialog.Builder(this)
+                .setTitle("Add Instruction")
+                .setView(layout)
                 .setPositiveButton("Save", (dialog, which) -> {
                     String text = instructionInput.getText().toString().trim();
+                    if (text.isEmpty()) return;
 
                     int nextOrder = instructionList.size() + 1;
 
-                    DatabaseReference newStep = instructionsRef.push();
-                    newStep.child("text").setValue(text);
-                    newStep.child("order").setValue(nextOrder);
-                }).setNegativeButton("Cancel", null).show();
+                    // LOCAL ONLY — no Firebase here
+                    instructionList.add(nextOrder + ". " + text);
+                    instructionKeyList.add(String.valueOf(nextOrder));
+
+                    instructionAdapter.notifyDataSetChanged();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
+
 
     private void showEditInstructionDialog(String key) {
         DatabaseReference itemRef = instructionsRef.child(key);
@@ -611,13 +618,22 @@ public class RecipeActivity extends AppCompatActivity {
                         return;
                     }
 
-                    String id = ingredientsRef.push().getKey();
+                    // LOCAL ONLY — no Firebase here
+                    String id = String.valueOf(System.currentTimeMillis());
                     Ingredient ing = new Ingredient(id, name, quantity, unit, prep);
-                    ingredientsRef.child(id).setValue(ing);
+
+                    ingredientList.add(ing);
+
+                    String display = quantity + " " + unit + " " + name;
+                    if (!prep.isEmpty()) display += " (" + prep + ")";
+                    ingredientDisplayList.add(display);
+
+                    ingredientAdapter.notifyDataSetChanged();
                 })
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();
     }
+
 
     private void showEditIngredientDialog(Ingredient ing) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
