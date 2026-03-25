@@ -3,10 +3,55 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Friends Fragment"
-        android:textSize="24sp" />
+    <!--Container for Friends List-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!--Container for Header-->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:orientation="horizontal"
+            android:background="#007E6E">
+
+            <ImageView
+                android:id="@+id/addButton"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:layout_gravity="end"
+                android:clickable="true"
+                android:contentDescription="Back"
+                android:padding="8dp"
+                android:src="@drawable/outline_add_24"
+                android:onClick="searchFriends"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="55dp"
+                android:fontFamily="@font/roboto"
+                android:layout_gravity="center"
+                android:text="Friends"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#FFFF"
+                android:layout_marginTop="10dp"/>
+        </FrameLayout>
+
+    <!--Container for Friends View-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ListView
+                android:id="@+id/listViewFriends"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+
 </FrameLayout>
