@@ -10,6 +10,15 @@
     <string name="confirm_password_hint">Confirm Password</string>
     <string name="login_button">Login</string>
     <string name="register_button">Register</string>
+    <string name="ingredients_label">Ingredients</string>
+    <string name="add_ingredient_button">+</string>
+    <string name="ingredient_name_hint">Ingredient name</string>
+    <string name="ingredient_quantity_hint">Quantity</string>
+    <string name="ingredient_unit_hint">Unit</string>
+    <string name="ingredient_prep_hint">Preparation style</string>
+    <string name="cookware_label">Cookware</string>
+    <string name="cookware_hint">Enter or select cookware</string>
+
     <string-array name="categories">
         <item>Breakfast</item>
         <item>Lunch</item>
@@ -40,5 +49,38 @@
         <item>High Protein</item>
         <item>Cheap</item>
         <item>Comfort Food</item>
+    </string-array>
+
+    <string-array name="ingredient_units">
+        <item>Cups</item>
+        <item>Tablespoons</item>
+        <item>Teaspoons</item>
+        <item>Grams</item>
+        <item>Milliliters</item>
+        <item>Ounces</item>
+        <item>Pounds</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="preparation_styles">
+        <item>Chopped</item>
+        <item>Minced</item>
+        <item>Diced</item>
+        <item>Sliced</item>
+        <item>Softened</item>
+        <item>Crushed</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="cookware_items">
+        <item>Pan</item>
+        <item>Pot</item>
+        <item>Skillet</item>
+        <item>Baking Tray</item>
+        <item>Oven Dish</item>
+        <item>Mixing Bowl</item>
+        <item>Whisk</item>
+        <item>Spatula</item>
+        <item>Other</item>
     </string-array>
 </resources>
