@@ -36,6 +36,13 @@
         <activity
             android:name=".ShoppingListActivity"
             android:exported="false" />
+        <activity
+            android:name=".PantryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ViewRecipeActivity"
+            android:exported="false" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
