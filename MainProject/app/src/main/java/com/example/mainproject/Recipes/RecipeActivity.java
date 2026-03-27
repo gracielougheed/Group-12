@@ -288,64 +288,6 @@ public class RecipeActivity extends AppCompatActivity {
             return;
         }
 
-        instructionsRef = recipesRef.child(recipeId).child("instructions");
-        instructionsRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                instructionList.clear();
-                instructionKeyList.clear();
-
-                ArrayList<DataSnapshot> steps = new ArrayList<>();
-                for (DataSnapshot step : snapshot.getChildren()) {
-                    steps.add(step);
-                }
-
-                // Sort by order
-                steps.sort((a, b) -> {
-                    Long orderA = a.child("order").getValue(Long.class);
-                    Long orderB = b.child("order").getValue(Long.class);
-                    return Long.compare(orderA, orderB);
-                });
-
-                for (DataSnapshot step : steps) {
-                    String text = step.child("text").getValue(String.class);
-                    Long order = step.child("order").getValue(Long.class);
-
-                    instructionList.add(order + ". " + text);
-                    instructionKeyList.add(step.getKey());
-                }
-
-                instructionAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {}
-        });
-
-        ingredientsRef = recipesRef.child(recipeId).child("ingredients");
-        ingredientsRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                ingredientList.clear();
-                ingredientDisplayList.clear();
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    Ingredient ing = child.getValue(Ingredient.class);
-                    if (ing != null) {
-                        ingredientList.add(ing);
-                        String display = ing.quantity + " " + ing.unit + " " + ing.name;
-                        if (ing.prep != null && !ing.prep.isEmpty()) {
-                            display += " (" + ing.prep + ")";
-                        }
-                        ingredientDisplayList.add(display);
-                    }
-                }
-                ingredientAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
-
         List<String> tags = new ArrayList<>();
         for (int i = 0; i < tagChipGroup.getChildCount(); i++) {
             Chip chip =(Chip) tagChipGroup.getChildAt(i);
