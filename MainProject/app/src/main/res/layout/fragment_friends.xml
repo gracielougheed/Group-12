@@ -16,17 +16,6 @@
             android:orientation="horizontal"
             android:background="#007E6E">
 
-            <ImageView
-                android:id="@+id/addButton"
-                android:layout_width="55dp"
-                android:layout_height="55dp"
-                android:layout_gravity="end"
-                android:clickable="true"
-                android:contentDescription="Back"
-                android:padding="8dp"
-                android:src="@drawable/outline_add_24"
-                android:onClick="searchFriends"/>
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="55dp"
@@ -37,7 +26,26 @@
                 android:textStyle="bold"
                 android:textColor="#FFFF"
                 android:layout_marginTop="10dp"/>
+
+            <!-- Inbox icon button for friend requests -->
+            <ImageView
+                android:id="@+id/btnFriendRequests"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="12dp"
+                android:src="@drawable/outline_all_inbox_24"
+                android:contentDescription="Friend Requests"
+                android:background="#007E6E" />
         </FrameLayout>
+
+        <!--SearchView for searching friends-->
+        <SearchView
+            android:id="@+id/searchViewFriends"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:queryHint="Search to add friends..." />
 
     <!--Container for Friends View-->
         <LinearLayout

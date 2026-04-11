@@ -37,10 +37,20 @@
             android:name=".ShoppingListActivity"
             android:exported="false" />
         <activity
-            android:name=".PantryActivity"
+            android:name=".ViewRecipeActivity"
             android:exported="false" />
         <activity
-            android:name=".ViewRecipeActivity"
+            android:name=".SearchFriendsActivity"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+        </activity>
+        <activity
+            android:name=".FriendRequestsActivity"
             android:exported="false" />
 
         <meta-data
