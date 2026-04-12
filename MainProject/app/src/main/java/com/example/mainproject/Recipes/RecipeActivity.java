@@ -47,7 +47,6 @@ public class RecipeActivity extends AppCompatActivity {
             "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/"
     );
     private FirebaseAuth myAuth;
-    private DatabaseReference instructionsRef;
 
     // UI references
     private EditText recipeTitle;
@@ -67,7 +66,6 @@ public class RecipeActivity extends AppCompatActivity {
     private Button btnAddInstruction;
     private ListView listViewInstructions;
     private ArrayList<String> instructionList = new ArrayList<>();
-    private ArrayList<String> instructionKeyList = new ArrayList<>();
     private ArrayAdapter<String> instructionAdapter;
     private Button btnAddIngredient;
     private ListView listviewIngredients;
@@ -161,12 +159,7 @@ public class RecipeActivity extends AppCompatActivity {
         instructionAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, instructionList);
         listViewInstructions.setAdapter(instructionAdapter);
-        instructionsRef = null;
         btnAddInstruction.setOnClickListener(v -> showAddInstructionDialog());
-        listViewInstructions.setOnItemClickListener((parent, view, position, id) -> {
-            String key = instructionKeyList.get(position);
-            showEditInstructionDialog(key);
-        });
 
         //Ingredients UI
         btnAddIngredient = findViewById(R.id.btnAddIngredient);
@@ -177,10 +170,6 @@ public class RecipeActivity extends AppCompatActivity {
         listviewIngredients.setAdapter(ingredientAdapter);
 
         btnAddIngredient.setOnClickListener(v -> showAddIngredientDialog());
-        listviewIngredients.setOnItemClickListener((parent, view, position, id) -> {
-            Ingredient ing = ingredientList.get(position);
-            showEditIngredientDialog(ing);
-        });
 
         //Cookware UI
         cookwareText = findViewById(R.id.cookwareText);
@@ -298,10 +287,12 @@ public class RecipeActivity extends AppCompatActivity {
         List<String> cookwareList = getCookwareFromChips();
         ArrayList<Ingredient> ingredientsList = new ArrayList<>(ingredientList);
 
+        List<String instructions = new ArrayList<>(instructionList);
+
         // Build recipe object
         Recipe recipe = new Recipe(recipeId, title, desc, category, prepTimeValue,
                 prepTimeUnit, cookTimeValue, cookTimeUnit, servingSize, difficultyLevel,
-                isPublic, tags, ingredientsList, cookwareList);
+                isPublic, tags, ingredientsList, cookwareList, instructions);
 
         // Write to Firebase
         recipesRef.child(recipeId).setValue(recipe).addOnSuccessListener(unused -> {
@@ -409,83 +400,24 @@ public class RecipeActivity extends AppCompatActivity {
         instructionInput.setHint("Enter instruction step");
         layout.addView(instructionInput);
 
-        new AlertDialog.Builder(this)
-                .setTitle("Add Instruction")
-                .setView(layout)
-                .setPositiveButton("Save", (dialog, which) -> {
+        new AlertDialog.Builder(this).setTitle("Add Instruction")
+                .setView(layout).setPositiveButton("Save", (dialog, which) -> {
                     String text = instructionInput.getText().toString().trim();
                     if (text.isEmpty()) return;
 
-                    int nextOrder = instructionList.size() + 1;
-
-                    // LOCAL ONLY — no Firebase here
-                    instructionList.add(nextOrder + ". " + text);
-                    instructionKeyList.add(String.valueOf(nextOrder));
-
-                    instructionAdapter.notifyDataSetChanged();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+                    instructionList.add(text);
+                    refreshInstructionDisplay();
+                }) .setNegativeButton("Cancel", null).show();
     }
 
-
-    private void showEditInstructionDialog(String key) {
-        DatabaseReference itemRef = instructionsRef.child(key);
-
-        itemRef.get().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) return;
-
-            String currentText = task.getResult().child("text").getValue(String.class);
-
-            LinearLayout layout = new LinearLayout(this);
-            layout.setOrientation(LinearLayout.VERTICAL);
-            layout.setPadding(50, 40, 50, 10);
-
-            EditText instructionInput = new EditText(this);
-            instructionInput.setText(currentText);
-            layout.addView(instructionInput);
-
-            new androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("Edit Instruction").setView(layout)
-                    .setPositiveButton("Save", (dialog, which) -> {
-                        String newText = instructionInput.getText().toString().trim();
-                        if (newText.isEmpty()) return;
-
-                        itemRef.child("text").setValue(newText);
-                    }).setNeutralButton("Delete", (dialog, which) -> {
-                        new androidx.appcompat.app.AlertDialog.Builder(this)
-                                .setTitle("Delete Step").setMessage("Are you sure?")
-                                .setPositiveButton("Yes", (d, w) -> {
-                                    itemRef.removeValue().addOnCompleteListener(done -> {
-                                        renumberInstructions();
-                                    });
-                                }).setNegativeButton("No", null).show();
-                    }).setNegativeButton("Cancel", null).show();
-        });
-    }
-
-    private void renumberInstructions() {
-        instructionsRef.get().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) return;
-
-            ArrayList<DataSnapshot> steps = new ArrayList<>();
-            for (DataSnapshot step : task.getResult().getChildren()) {
-                steps.add(step);
-            }
-
-            // Sort by current order
-            steps.sort((a, b) -> {
-                Long orderA = a.child("order").getValue(Long.class);
-                Long orderB = b.child("order").getValue(Long.class);
-                return Long.compare(orderA, orderB);
-            });
-
-            int newOrder = 1;
-            for (DataSnapshot step : steps) {
-                step.getRef().child("order").setValue(newOrder);
-                newOrder++;
-            }
-        });
+    private void refreshInstructionDisplay() {
+        ArrayList<String> displayList = new ArrayList<>();
+        for (int i = 0; i < instructionList.size(); i++) {
+            displayList.add((i + 1) + ". " + instructionList.get(i));
+        }
+        instructionAdapter.clear();
+        instructionAdapter.addAll(displayList);
+        instructionAdapter.notifyDataSetChanged();
     }
 
     private void addCookwareChip(String text) {
@@ -575,74 +507,6 @@ public class RecipeActivity extends AppCompatActivity {
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();
     }
-
-
-    private void showEditIngredientDialog(Ingredient ing) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_ingredient, null);
-
-        EditText nameEdit = dialogView.findViewById(R.id.editIngredientName);
-        EditText quantityEdit = dialogView.findViewById(R.id.editIngredientQuantity);
-        Spinner unitSpinner = dialogView.findViewById(R.id.spinnerIngredientUnit);
-        EditText customUnitEdit = dialogView.findViewById(R.id.editCustomUnit);
-        Spinner prepSpinner = dialogView.findViewById(R.id.spinnerPreparation);
-        EditText customPrepEdit = dialogView.findViewById(R.id.editCustomPreparation);
-
-        ArrayAdapter<CharSequence> unitAdapter = ArrayAdapter.createFromResource(
-                this, R.array.ingredient_units, android.R.layout.simple_spinner_item);
-        unitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        unitSpinner.setAdapter(unitAdapter);
-
-        ArrayAdapter<CharSequence> prepAdapter = ArrayAdapter.createFromResource(
-                this, R.array.preparation_styles, android.R.layout.simple_spinner_item);
-        prepAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        prepSpinner.setAdapter(prepAdapter);
-
-        nameEdit.setText(ing.name);
-        quantityEdit.setText(ing.quantity);
-
-        int unitPos = unitAdapter.getPosition(ing.unit);
-        if (unitPos >= 0) {
-            unitSpinner.setSelection(unitPos);
-        } else {
-            unitSpinner.setSelection(unitAdapter.getPosition("Other"));
-            customUnitEdit.setVisibility(View.VISIBLE);
-            customUnitEdit.setText(ing.unit);
-        }
-
-        int prepPos = prepAdapter.getPosition(ing.prep);
-        if (prepPos >= 0) {
-            prepSpinner.setSelection(prepPos);
-        } else {
-            prepSpinner.setSelection(prepAdapter.getPosition("Other"));
-            customPrepEdit.setVisibility(View.VISIBLE);
-            customPrepEdit.setText(ing.prep);
-        }
-
-        builder.setView(dialogView)
-                .setTitle("Edit Ingredient")
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String name = nameEdit.getText().toString().trim();
-                    String quantity = quantityEdit.getText().toString().trim();
-                    String unit = unitSpinner.getSelectedItem().toString();
-                    String prep = prepSpinner.getSelectedItem().toString();
-
-                    if ("Other".equals(unit)) unit = customUnitEdit.getText().toString().trim();
-                    if ("Other".equals(prep)) prep = customPrepEdit.getText().toString().trim();
-
-                    ing.name = name;
-                    ing.quantity = quantity;
-                    ing.unit = unit;
-                    ing.prep = prep;
-
-                    ingredientsRef.child(ing.ingredientId).setValue(ing);
-                })
-                .setNegativeButton("Delete", (dialog, which) -> {
-                    ingredientsRef.child(ing.ingredientId).removeValue();
-                })
-                .show();
-    }
-
 
     public void goBack(View view){
         Intent intent = new Intent(this, HomeActivity.class);
