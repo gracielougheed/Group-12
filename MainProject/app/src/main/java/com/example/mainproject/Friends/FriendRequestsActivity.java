@@ -18,17 +18,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Activity that displays incoming friend requests.
- * Users can accept or reject friend requests from this screen.
- */
 public class FriendRequestsActivity extends AppCompatActivity {
 
     FirebaseDatabase database = FirebaseDatabase.getInstance(
             "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/"
     );
 
-    private ListView friendRequestsListView;
     private List<User> incomingRequests;
     private ArrayAdapter<String> adapter;
     private FirebaseUser currentUser;
@@ -38,7 +33,7 @@ public class FriendRequestsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_friend_requests);
 
-        friendRequestsListView = findViewById(R.id.friendRequestsList);
+        ListView friendRequestsListView = findViewById(R.id.friendRequestsList);
         incomingRequests = new ArrayList<>();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -49,9 +44,9 @@ public class FriendRequestsActivity extends AppCompatActivity {
         // Load incoming friend requests
         loadFriendRequests();
 
-        // Handle item click for request actions (long click to see options or use buttons in custom layout)
+        // Handle item click for request actions
         friendRequestsListView.setOnItemClickListener((parent, view, position, id) -> {
-            if (position < incomingRequests.size()) {
+            if (position < incomingRequests.size()) { //Ensure request is valid
                 showRequestOptions(incomingRequests.get(position));
             }
         });
@@ -59,6 +54,9 @@ public class FriendRequestsActivity extends AppCompatActivity {
 
     /**
      * Load all incoming friend requests for the current user
+     * Obtains snapshot of users from incomingFriendRequests node
+     * Fetches users details to add them to incomingRequests list and updates the ListView adapter
+     *
      */
     private void loadFriendRequests() {
         if (currentUser == null) {
@@ -81,6 +79,7 @@ public class FriendRequestsActivity extends AppCompatActivity {
                         String requesterId = requesterSnapshot.getKey();
 
                         // Fetch the requester's details
+                        assert requesterId != null;
                         DatabaseReference requesterRef = database.getReference("users")
                                 .child(requesterId);
 
@@ -106,6 +105,9 @@ public class FriendRequestsActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Loops through each requester in the incomingRequests list and adds their name to the adapter
+     */
     private void updateRequestsListView() {
         List<String> displayNames = new ArrayList<>();
         for (User requester : incomingRequests) {
@@ -121,16 +123,15 @@ public class FriendRequestsActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Creates the alert dialog for the friend request options (accept or reject)
+     */
     private void showRequestOptions(User requester) {
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Friend Request from " + requester.name)
                 .setMessage("Accept or reject this friend request?")
-                .setPositiveButton("Accept", (dialog, which) -> {
-                    acceptFriendRequest(requester);
-                })
-                .setNegativeButton("Reject", (dialog, which) -> {
-                    rejectFriendRequest(requester);
-                })
+                .setPositiveButton("Accept", (dialog, which) -> acceptFriendRequest(requester))
+                .setNegativeButton("Reject", (dialog, which) -> rejectFriendRequest(requester))
                 .show();
     }
 

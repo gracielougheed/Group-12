@@ -26,7 +26,6 @@ public class SearchFriendsActivity extends AppCompatActivity {
             "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/"
     );
 
-    private ListView searchResultsListView;
     private List<User> searchResults;
     private ArrayAdapter<String> adapter;
     private FirebaseUser currentUser;
@@ -36,7 +35,7 @@ public class SearchFriendsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_friends);
 
-        searchResultsListView = findViewById(R.id.searchResultsList);
+        ListView searchResultsListView = findViewById(R.id.searchResultsList);
         searchResults = new ArrayList<>();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -56,6 +55,11 @@ public class SearchFriendsActivity extends AppCompatActivity {
         handleSearchIntent(getIntent());
     }
 
+    /**
+     * Handle the search intent from the intent that launched this activity
+     *
+     * @param intent The intent that launched this activity
+     */
     private void handleSearchIntent(Intent intent) {
         if (intent != null && Intent.ACTION_SEARCH.equals(intent.getAction())) {
             String query = intent.getStringExtra(SearchManager.QUERY);
@@ -64,6 +68,13 @@ public class SearchFriendsActivity extends AppCompatActivity {
             }
         }
     }
+
+    /**
+     * Perform a search for friends using the provided query
+     * Checks to ensure user is authenticated, isn't null, is current user or already a friend
+     *
+     * @param query The search query input
+     */
     private void performSearch(String query) {
         if (currentUser == null) {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
@@ -121,6 +132,9 @@ public class SearchFriendsActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Loops through each user in the searchResults list and adds their name to the adapter
+     */
     private void updateListView() {
         List<String> displayNames = new ArrayList<>();
         for (User user : searchResults) {
@@ -139,6 +153,14 @@ public class SearchFriendsActivity extends AppCompatActivity {
             );
         }
     }
+
+    /**
+     * Add a user as a friend
+     * Checks to ensure user is authenticated, isn't null, hasn't requested current user and isn't already a friend
+     * Sends friend request to selected user, by adding them to the current user's incoming requests
+     *
+     * @param selectedUser The user to add as a friend
+     */
     private void addFriend(User selectedUser) {
         if (currentUser == null) {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
@@ -166,6 +188,8 @@ public class SearchFriendsActivity extends AppCompatActivity {
 
     /**
      * Send a friend request to the selected user
+     *
+     * @param selectedUser The user to add as a friend
      */
     private void sendFriendRequest(User selectedUser) {
         // Send friend request to the selected user

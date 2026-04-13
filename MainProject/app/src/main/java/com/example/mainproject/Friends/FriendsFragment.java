@@ -30,7 +30,6 @@ public class FriendsFragment extends Fragment {
 
     private SearchView searchView;
     private boolean isSearching = false;
-    private ListView listViewFriends;
     private ArrayAdapter<String> friendsAdapter;
     private List<User> friendsList;
     private FirebaseUser currentUser;
@@ -63,15 +62,19 @@ public class FriendsFragment extends Fragment {
             startActivity(intent);
         });
 
-        listViewFriends = view.findViewById(R.id.listViewFriends);
+        ListView listViewFriends = view.findViewById(R.id.listViewFriends);
         friendsList = new ArrayList<>();
-        friendsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, new ArrayList<>());
+        friendsAdapter = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, new ArrayList<>());
         listViewFriends.setAdapter(friendsAdapter);
 
         // Load friends list
         listFriends();
         return view;
     }
+
+    /**
+     * Set up the SearchView to handle search queries
+     */
     private void setupSearchView() {
         if (searchView != null) {
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -95,6 +98,12 @@ public class FriendsFragment extends Fragment {
         }
     }
 
+    /**
+     * Perform a search for friends using the provided query
+     * Redirects to SearchFriendsActivity to handle the search
+     *
+     * @param query The search query input
+     */
     private void performSearch(String query) {
         Intent intent = new Intent(getActivity(), SearchFriendsActivity.class);
         intent.setAction(Intent.ACTION_SEARCH); //Search operation
@@ -103,11 +112,13 @@ public class FriendsFragment extends Fragment {
         startActivity(intent);
 
         // Reset search flag after launching (allows activity to launch before triggering another search)
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-            isSearching = false;
-        }, 500);
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> isSearching = false, 500);
     }
 
+    /**
+     * Load all friends for the current user
+     * Fetches each friends details and adds them to friendsList
+     */
     public void listFriends() {
         if (currentUser == null) {
             Toast.makeText(getActivity(), "User not authenticated", Toast.LENGTH_SHORT).show();
@@ -130,6 +141,7 @@ public class FriendsFragment extends Fragment {
                         String friendId = friendIdSnapshot.getKey();
 
                         // Fetch the friend's details using ID
+                        assert friendId != null;
                         DatabaseReference friendRef = database.getReference("users")
                                 .child(friendId);
 
@@ -154,6 +166,10 @@ public class FriendsFragment extends Fragment {
             }
         });
     }
+
+    /**
+     * Loops through each friend in the friendsList and adds their name to the adapter
+     */
     private void updateFriendsListView() {
         List<String> friendNames = new ArrayList<>();
         for (User friend : friendsList) {
