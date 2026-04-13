@@ -146,6 +146,29 @@ public class SearchFriendsActivity extends AppCompatActivity {
             return;
         }
 
+        DatabaseReference currentUserIncomingRequestsRef = database.getReference("users")
+                .child(currentUser.getUid())
+                .child("incomingFriendRequests");
+
+        currentUserIncomingRequestsRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()) {
+                // Check if selected user has already requested current user
+                if (task.getResult().hasChild(selectedUser.uid)) {
+                    Toast.makeText(SearchFriendsActivity.this,
+                            "User has already requested you",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            sendFriendRequest(selectedUser);
+        });
+    }
+
+    /**
+     * Send a friend request to the selected user
+     */
+    private void sendFriendRequest(User selectedUser) {
         // Send friend request to the selected user
         DatabaseReference selectedUserRequestsRef = database.getReference("users")
                 .child(selectedUser.uid)
@@ -156,13 +179,13 @@ public class SearchFriendsActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(SearchFriendsActivity.this,
-                            "Friend request sent to " + selectedUser.name + "!",
-                            Toast.LENGTH_SHORT).show();
+                                "Friend request sent to " + selectedUser.name + "!",
+                                Toast.LENGTH_SHORT).show();
                         finish();
                     } else {
                         Toast.makeText(SearchFriendsActivity.this,
-                            "Error sending friend request",
-                            Toast.LENGTH_SHORT).show();
+                                "Error sending friend request",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
     }
