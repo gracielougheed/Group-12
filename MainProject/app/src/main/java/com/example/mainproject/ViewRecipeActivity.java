@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.mainproject.Recipes.EditRecipeActivity;
+import com.example.mainproject.entities.Recipe;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -76,6 +77,24 @@ public class ViewRecipeActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        reloadRecipe();
+    }
+
+    private void reloadRecipe() {
+        String uid = FirebaseAuth.getInstance().getUid();
+        DatabaseReference ref = FirebaseDatabase.getInstance(
+                "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/")
+                .getReference("users").child(uid).child("recipes").child(recipeId);
+
+        ref.get().addOnSuccessListener(snapshot -> {
+            Recipe r = snapshot.getValue(Recipe.class);
+            if (r != null) populateUI(r);
+        });
+    }
+
     private void showDeleteConfirmationDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Delete Recipe");
@@ -115,5 +134,32 @@ public class ViewRecipeActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void populateUI(Recipe r) {
+        TextView titleTextView = findViewById(R.id.recipeTitle);
+        TextView categoryTextView = findViewById(R.id.recipeCategory);
+        TextView prepTimeTextView = findViewById(R.id.recipePrepTime);
+        TextView cookTimeTextView = findViewById(R.id.recipeCookTime);
+        TextView servingsTextView = findViewById(R.id.recipeServingSize);
+        TextView instructionsTextView = findViewById(R.id.recipeInstructions);
+
+        titleTextView.setText(r.title);
+        categoryTextView.setText(r.category);
+        prepTimeTextView.setText(r.prepTimeValue + " " + r.prepTimeUnit);
+        cookTimeTextView.setText(r.cookTimeValue + " " + r.cookTimeUnit);
+        servingsTextView.setText(String.valueOf(r.servingSize));
+
+        // Join instructions into a readable block
+        if (r.instructions != null && !r.instructions.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < r.instructions.size(); i++) {
+                sb.append(i + 1).append(". ").append(r.instructions.get(i)).append("\n\n");
+            }
+            instructionsTextView.setText(sb.toString().trim());
+        }
+        else {
+            instructionsTextView.setText("No instructions available");
+        }
     }
 }

@@ -65,7 +65,11 @@ public class EditRecipeActivity extends AppCompatActivity{
         loadRecipeFromFirebase();
     }
 
-    private void findViews() {}
+    private void findViews() {
+        recipeTitle = findViewById(R.id.recipeTitle);
+        recipeDesc = findViewById(R.id.recipeDesc);
+        recipeCategory = findViewById(R.id.recipeCategory);
+    }
 
     private void setupSpinners() {}
 
