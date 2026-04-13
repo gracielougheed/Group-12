@@ -1,4 +1,4 @@
-package com.example.mainproject;
+package com.example.mainproject.Friends;
 
 import android.app.SearchManager;
 import android.content.Intent;
@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.mainproject.R;
 import com.example.mainproject.entities.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -17,9 +18,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class SearchFriendsActivity extends AppCompatActivity {
 

@@ -1,4 +1,4 @@
-package com.example.mainproject;
+package com.example.mainproject.Friends;
 
 import android.app.SearchManager;
 import android.content.Intent;
@@ -15,6 +15,7 @@ import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import com.example.mainproject.R;
 import com.example.mainproject.entities.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;

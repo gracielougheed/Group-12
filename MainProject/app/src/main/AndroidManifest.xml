@@ -40,7 +40,7 @@
             android:name=".ViewRecipeActivity"
             android:exported="false" />
         <activity
-            android:name=".SearchFriendsActivity"
+            android:name=".Friends.SearchFriendsActivity"
             android:exported="false" >
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
@@ -50,7 +50,7 @@
                 android:resource="@xml/searchable" />
         </activity>
         <activity
-            android:name=".FriendRequestsActivity"
+            android:name=".Friends.FriendRequestsActivity"
             android:exported="false" />
 
         <meta-data

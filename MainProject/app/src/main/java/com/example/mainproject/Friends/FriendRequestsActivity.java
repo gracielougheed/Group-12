@@ -1,4 +1,4 @@
-package com.example.mainproject;
+package com.example.mainproject.Friends;
 
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.mainproject.R;
 import com.example.mainproject.entities.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;

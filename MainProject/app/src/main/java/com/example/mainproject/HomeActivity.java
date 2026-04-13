@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import com.example.mainproject.Friends.FriendsFragment;
 import com.example.mainproject.Recipes.RecipeActivity;
 import com.example.mainproject.Recipes.RecipesFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
