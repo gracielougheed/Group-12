@@ -1,6 +1,7 @@
 package com.example.mainproject;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -11,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.mainproject.Recipes.EditRecipeActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,6 +39,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
         TextView cookTimeTextView = findViewById(R.id.recipeCookTime);
         TextView servingsTextView = findViewById(R.id.recipeServingSize);
         TextView instructionsTextView = findViewById(R.id.recipeInstructions);
+        Button editButton = findViewById(R.id.editRecipeButton);
         Button deleteButton = findViewById(R.id.deleteRecipeButton);
 
         // Retrieve data from intent
@@ -56,6 +59,13 @@ public class ViewRecipeActivity extends AppCompatActivity {
             servingsTextView.setText(String.valueOf(getIntent().getIntExtra("SERVINGS", 1)));
             instructionsTextView.setText(getIntent().getStringExtra("instructions"));
         }
+
+        // Edit button
+        editButton.setOnClickListener(v -> {
+            Intent intent = new Intent(ViewRecipeActivity.this, EditRecipeActivity.class);
+            intent.putExtra("RECIPE_ID", recipeId);
+            startActivity(intent);
+        });
 
         // Set up delete button with confirmation dialog
         deleteButton.setOnClickListener(new View.OnClickListener() {
