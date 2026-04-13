@@ -339,9 +339,9 @@
                 </LinearLayout>
 
 
-                <!-- Save Button -->
+                <!-- Update Button -->
                 <Button
-                    android:id="@+id/addRecipeButton"
+                    android:id="@+id/updateRecipeButton"
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
                     android:layout_gravity="center"
