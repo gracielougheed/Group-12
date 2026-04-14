@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <EditText
+        android:id="@+id/input_plan_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Plan name (e.g. This Week)"
+        android:maxLength="50" />
+
+    <Button
+        android:id="@+id/button_start_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Start Date"
+        android:backgroundTint="@color/green" />
+
+    <Button
+        android:id="@+id/button_end_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="End Date"
+        android:backgroundTint="@color/green" />
+
+</LinearLayout>
