@@ -1,12 +1,15 @@
 package com.example.mainproject.Friends;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.mainproject.HomeActivity;
 import com.example.mainproject.R;
 import com.example.mainproject.entities.User;
 import com.google.firebase.auth.FirebaseAuth;
@@ -212,6 +215,11 @@ public class FriendRequestsActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    public void goBack(View view){
+        Intent intent = new Intent(this, HomeActivity.class);
+        startActivity(intent);
     }
 }
 
