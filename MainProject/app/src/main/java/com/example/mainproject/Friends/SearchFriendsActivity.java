@@ -214,7 +214,7 @@ public class SearchFriendsActivity extends AppCompatActivity {
                 .child("incomingFriendRequests");
 
         // Add current user's ID to the selected user's incoming requests
-        selectedUserRequestsRef.child(currentUser.getUid()).setValue(true)
+        selectedUserRequestsRef.child(currentUser.getUid()).setValue("pending")
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(SearchFriendsActivity.this,

@@ -151,7 +151,7 @@ public class FriendRequestsActivity extends AppCompatActivity {
                 .child(currentUser.getUid())
                 .child("friends");
 
-        currentUserFriendsRef.child(requester.uid).setValue(true)
+        currentUserFriendsRef.child(requester.uid).setValue("accepted")
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         // Add current user to requester's friends list
@@ -159,7 +159,7 @@ public class FriendRequestsActivity extends AppCompatActivity {
                                 .child(requester.uid)
                                 .child("friends");
 
-                        requesterFriendsRef.child(currentUser.getUid()).setValue(true)
+                        requesterFriendsRef.child(currentUser.getUid()).setValue("accepted")
                                 .addOnCompleteListener(task2 -> {
                                     if (task2.isSuccessful()) {
                                         // Remove the request
