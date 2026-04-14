@@ -156,7 +156,7 @@ public class SearchFriendsActivity extends AppCompatActivity {
 
     /**
      * Add a user as a friend
-     * Checks to ensure user is authenticated, isn't null, hasn't requested current user and isn't already a friend
+     * Checks to ensure user is authenticated, isn't null, hasn't sent a request already and doesn't have an incoming request from this user
      * Sends friend request to selected user, by adding them to the current user's incoming requests
      *
      * @param selectedUser The user to add as a friend
@@ -171,10 +171,10 @@ public class SearchFriendsActivity extends AppCompatActivity {
                 .child(currentUser.getUid())
                 .child("incomingFriendRequests");
 
-        currentUserIncomingRequestsRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult().exists()) {
-                // Check if selected user has already requested current user
-                if (task.getResult().hasChild(selectedUser.uid)) {
+        currentUserIncomingRequestsRef.get().addOnCompleteListener(task1 -> {
+            if (task1.isSuccessful() && task1.getResult().exists()) {
+
+                if (task1.getResult().hasChild(selectedUser.uid)) {
                     Toast.makeText(SearchFriendsActivity.this,
                             "User has already requested you",
                             Toast.LENGTH_SHORT).show();
@@ -182,7 +182,23 @@ public class SearchFriendsActivity extends AppCompatActivity {
                 }
             }
 
-            sendFriendRequest(selectedUser);
+            DatabaseReference selectedUserIncomingRequestsRef = database.getReference("users")
+                    .child(selectedUser.uid)
+                    .child("incomingFriendRequests");
+
+            selectedUserIncomingRequestsRef.get().addOnCompleteListener(task2 -> {
+                if (task2.isSuccessful() && task2.getResult().exists()) {
+
+                    if (task2.getResult().hasChild(currentUser.getUid())) {
+                        Toast.makeText(SearchFriendsActivity.this,
+                                "You have already requested " + selectedUser.name,
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+
+                sendFriendRequest(selectedUser);
+            });
         });
     }
 
