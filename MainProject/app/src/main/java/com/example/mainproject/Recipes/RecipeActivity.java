@@ -287,7 +287,7 @@ public class RecipeActivity extends AppCompatActivity {
         List<String> cookwareList = getCookwareFromChips();
         ArrayList<Ingredient> ingredientsList = new ArrayList<>(ingredientList);
 
-        List<String instructions = new ArrayList<>(instructionList);
+        List<String> instructions = new ArrayList<>(instructionList);
 
         // Build recipe object
         Recipe recipe = new Recipe(recipeId, title, desc, category, prepTimeValue,
