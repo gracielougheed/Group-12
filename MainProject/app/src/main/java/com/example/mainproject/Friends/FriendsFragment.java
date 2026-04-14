@@ -72,6 +72,12 @@ public class FriendsFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        listFriends();
+    }
+
     /**
      * Set up the SearchView to handle search queries
      */
