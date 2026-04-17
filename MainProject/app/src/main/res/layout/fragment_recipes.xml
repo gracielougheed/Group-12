@@ -40,12 +40,24 @@
                     android:backgroundTint="#73AF6F" />
 
                 <Button
+                    android:id="@+id/sharedRecipes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="View Friends Shared Recipes"
+                    android:backgroundTint="#007E6E" />
+
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center">
+                <Button
                     android:id="@+id/btnGoToShoppingList"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Shopping List"
-                    android:backgroundTint="#4285F4" />
-
+                    android:backgroundTint="#73AF6F" />
             </LinearLayout>
 
             <!-- Breakfast Category -->
