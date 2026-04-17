@@ -53,6 +53,11 @@ public class RecipesFragment extends Fragment {
             startActivity(intent);
         });
 
+        view.findViewById(R.id.sharedRecipes).setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ViewFriendsRecipesActivity.class);
+            startActivity(intent);
+        });
+
         // Initialize Firebase Reference
         String uid = FirebaseAuth.getInstance().getUid();
         if (uid != null) {
