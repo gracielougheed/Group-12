@@ -69,6 +69,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
         shareButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, ShareRecipeActivity.class);
+            intent.putExtra("RECIPE_ID", recipeId);
             startActivity(intent);
         });
     }
