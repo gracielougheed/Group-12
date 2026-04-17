@@ -25,6 +25,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
     private String recipeId;
     private String recipeTitle;
+    private String ownerUid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,11 +42,15 @@ public class ViewRecipeActivity extends AppCompatActivity {
         Button shareButton = findViewById(R.id.shareRecipeButton);
         Button deleteButton = findViewById(R.id.deleteRecipeButton);
 
+        // Get current user UID
+        String currentUid = FirebaseAuth.getInstance().getUid();
+
         // Retrieve data from intent
         if (getIntent() != null) {
             recipeId = getIntent().getStringExtra("RECIPE_ID");
             recipeTitle = getIntent().getStringExtra("title");
-            
+            ownerUid = getIntent().getStringExtra("OWNER_UID");
+
             titleTextView.setText(recipeTitle);
             categoryTextView.setText(getIntent().getStringExtra("CATEGORY"));
             
@@ -57,6 +62,12 @@ public class ViewRecipeActivity extends AppCompatActivity {
             
             servingsTextView.setText(String.valueOf(getIntent().getIntExtra("SERVINGS", 1)));
             instructionsTextView.setText(getIntent().getStringExtra("instructions"));
+        }
+
+        // Hide share and delete buttons if user is not the owner
+        if(ownerUid != null && !ownerUid.equals(currentUid)){
+            shareButton.setVisibility(View.GONE);
+            deleteButton.setVisibility(View.GONE);
         }
 
         // Set up delete button with confirmation dialog
