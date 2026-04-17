@@ -1,6 +1,7 @@
 package com.example.mainproject;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -37,6 +38,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
         TextView cookTimeTextView = findViewById(R.id.recipeCookTime);
         TextView servingsTextView = findViewById(R.id.recipeServingSize);
         TextView instructionsTextView = findViewById(R.id.recipeInstructions);
+        Button shareButton = findViewById(R.id.shareRecipeButton);
         Button deleteButton = findViewById(R.id.deleteRecipeButton);
 
         // Retrieve data from intent
@@ -63,6 +65,11 @@ public class ViewRecipeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 showDeleteConfirmationDialog();
             }
+        });
+
+        shareButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ShareRecipeActivity.class);
+            startActivity(intent);
         });
     }
 
