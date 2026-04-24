@@ -13,7 +13,6 @@ import androidx.fragment.app.Fragment;
 
 import com.example.mainproject.R;
 import com.example.mainproject.ShoppingListActivity;
-import com.example.mainproject.ViewRecipeActivity;
 import com.example.mainproject.entities.Recipe;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
