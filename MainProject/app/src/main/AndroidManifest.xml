@@ -19,7 +19,7 @@
             android:name=".Recipes.ViewFriendsRecipesActivity"
             android:exported="false" />
         <activity
-            android:name=".ShareRecipeActivity"
+            android:name=".Recipes.ShareRecipeActivity"
             android:exported="false" />
         <activity
             android:name=".LoginActivity"
@@ -46,7 +46,7 @@
             android:name=".ShoppingListActivity"
             android:exported="false" />
         <activity
-            android:name=".ViewRecipeActivity"
+            android:name=".Recipes.ViewRecipeActivity"
             android:exported="false" />
         <activity
             android:name=".Friends.SearchFriendsActivity"
