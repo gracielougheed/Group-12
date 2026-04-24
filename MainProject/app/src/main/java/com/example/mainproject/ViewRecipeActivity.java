@@ -1,6 +1,7 @@
 package com.example.mainproject;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -24,6 +25,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
     private String recipeId;
     private String recipeTitle;
+    private String ownerUid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,13 +39,18 @@ public class ViewRecipeActivity extends AppCompatActivity {
         TextView cookTimeTextView = findViewById(R.id.recipeCookTime);
         TextView servingsTextView = findViewById(R.id.recipeServingSize);
         TextView instructionsTextView = findViewById(R.id.recipeInstructions);
+        Button shareButton = findViewById(R.id.shareRecipeButton);
         Button deleteButton = findViewById(R.id.deleteRecipeButton);
+
+        // Get current user UID
+        String currentUid = FirebaseAuth.getInstance().getUid();
 
         // Retrieve data from intent
         if (getIntent() != null) {
             recipeId = getIntent().getStringExtra("RECIPE_ID");
             recipeTitle = getIntent().getStringExtra("title");
-            
+            ownerUid = getIntent().getStringExtra("OWNER_UID");
+
             titleTextView.setText(recipeTitle);
             categoryTextView.setText(getIntent().getStringExtra("CATEGORY"));
             
@@ -57,12 +64,24 @@ public class ViewRecipeActivity extends AppCompatActivity {
             instructionsTextView.setText(getIntent().getStringExtra("instructions"));
         }
 
+        // Hide share and delete buttons if user is not the owner
+        if(ownerUid != null && !ownerUid.equals(currentUid)){
+            shareButton.setVisibility(View.GONE);
+            deleteButton.setVisibility(View.GONE);
+        }
+
         // Set up delete button with confirmation dialog
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showDeleteConfirmationDialog();
             }
+        });
+
+        shareButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ShareRecipeActivity.class);
+            intent.putExtra("RECIPE_ID", recipeId);
+            startActivity(intent);
         });
     }
 

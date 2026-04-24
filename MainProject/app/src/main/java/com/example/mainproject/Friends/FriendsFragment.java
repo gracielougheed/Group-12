@@ -30,6 +30,7 @@ public class FriendsFragment extends Fragment {
 
     private SearchView searchView;
     private boolean isSearching = false;
+    private boolean isLoadingFriends = false;
     private ArrayAdapter<String> friendsAdapter;
     private List<User> friendsList;
     private FirebaseUser currentUser;
@@ -67,8 +68,6 @@ public class FriendsFragment extends Fragment {
         friendsAdapter = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, new ArrayList<>());
         listViewFriends.setAdapter(friendsAdapter);
 
-        // Load friends list
-        listFriends();
         return view;
     }
 
@@ -131,6 +130,12 @@ public class FriendsFragment extends Fragment {
             return;
         }
 
+        if (isLoadingFriends) {
+            return;
+        }
+
+        isLoadingFriends = true;
+
         // Get reference to current user's friends
         DatabaseReference currentUserRef = database.getReference("users")
                 .child(currentUser.getUid())
@@ -170,6 +175,7 @@ public class FriendsFragment extends Fragment {
             } else {
                 Toast.makeText(getActivity(), "Error loading friends", Toast.LENGTH_SHORT).show();
             }
+            isLoadingFriends = false;
         });
     }
 
