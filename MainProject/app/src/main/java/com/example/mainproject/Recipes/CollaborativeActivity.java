@@ -17,7 +17,10 @@ import com.example.mainproject.HomeActivity;
 import com.example.mainproject.LoginActivity;
 import com.example.mainproject.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.List;
 
 public class CollaborativeActivity extends AppCompatActivity {
 
@@ -62,7 +65,87 @@ public class CollaborativeActivity extends AppCompatActivity {
     }
 
     private void loadCollabRecipes(){
-        //Load public recipes here
+        String uid = FirebaseAuth.getInstance().getUid();
+        if(uid == null) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }else{
+
+            // Load user's own public recipes
+            database.getReference("users").child(uid).child("recipes").get().addOnSuccessListener(ownRecipesSnapshot -> {
+                for (DataSnapshot recipeSnapshot : ownRecipesSnapshot.getChildren()) {
+                    Boolean isPublic = recipeSnapshot.child("isPublic").getValue(Boolean.class);
+                    
+                    // Only show public recipes
+                    if (isPublic != null && isPublic) {
+                        String recipeId = recipeSnapshot.getKey();
+                        String recipeName = recipeSnapshot.child("title").getValue(String.class);
+                        
+                        if (collabRecipesContainer.indexOfChild(emptyStateMessage) != -1) {
+                            collabRecipesContainer.removeView(emptyStateMessage);
+                        }
+
+                            TextView recipeTextView = new TextView(this);
+                            recipeTextView.setText(recipeName + " (owned by You)");
+                            recipeTextView.setTextSize(18);
+                            recipeTextView.setPadding(16, 16, 16, 16);
+                            recipeTextView.setBackgroundResource(android.R.drawable.list_selector_background);
+                            recipeTextView.setClickable(true);
+                            recipeTextView.setFocusable(true);
+                            
+                            //Needs on click listener to open edit recipe activity
+                            
+                            collabRecipesContainer.addView(recipeTextView);
+                    }
+                }
+            });
+            
+            // Load recipes where user is a collaborator
+            database.getReference("users").child(uid).child("friends").get().addOnSuccessListener(friendsSnapshot -> {
+                for (DataSnapshot friendSnapshot : friendsSnapshot.getChildren()) {
+                    String friendUid = friendSnapshot.getKey();
+
+                    database.getReference("users").child(friendUid).child("recipes").get().addOnSuccessListener(recipesSnapshot -> {
+                        for (DataSnapshot recipeSnapshot : recipesSnapshot.getChildren()) {
+                            String recipeId = recipeSnapshot.getKey();
+                            String recipeName = recipeSnapshot.child("title").getValue(String.class);
+                            String finalRecipeId = recipeId;
+                            String finalFriendUid = friendUid;
+
+                            List<String> collaborators = (List<String>) recipeSnapshot.child("collaborators").getValue();
+
+                            if (collaborators != null && collaborators.contains(uid)) {
+
+                                if (collabRecipesContainer.indexOfChild(emptyStateMessage) != -1) {
+                                    collabRecipesContainer.removeView(emptyStateMessage);
+                                }
+
+                                database.getReference("users").child(finalFriendUid).child("name").get().addOnSuccessListener(nameSnapshot -> {
+                                    String creatorName = nameSnapshot.getValue(String.class);
+                                    if (creatorName == null) {
+                                        creatorName = "Unknown";
+                                    }
+
+                                    TextView recipeTextView = new TextView(this);
+                                    recipeTextView.setText(recipeName + " (owned by " + creatorName + ")");
+                                    recipeTextView.setTextSize(18);
+                                    recipeTextView.setPadding(16, 16, 16, 16);
+                                    recipeTextView.setBackgroundResource(android.R.drawable.list_selector_background);
+                                    recipeTextView.setClickable(true);
+                                    recipeTextView.setFocusable(true);
+                                    
+                                    //Needs on click listener to open edit recipe activity
+                                    
+                                    collabRecipesContainer.addView(recipeTextView);
+                                });
+                            }
+                        }
+                    });
+                }
+            });    
+        }
     }
 
     public void goBack(View view){
