@@ -28,6 +28,7 @@ import com.example.mainproject.HomeActivity;
 import com.example.mainproject.R;
 import com.example.mainproject.entities.Ingredient;
 import com.example.mainproject.entities.Recipe;
+import com.example.mainproject.entities.User;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
@@ -77,6 +78,11 @@ public class RecipeActivity extends AppCompatActivity {
     private DatabaseReference ingredientsRef;
     private AutoCompleteTextView cookwareText;
     private ChipGroup cookwareChipGroup;
+    private LinearLayout collaboratorsContainer;
+    private Button btnAddCollaborator;
+    private ChipGroup collaboratorChipGroup;
+    private List<User> friendsList = new ArrayList<>();
+    private List<String> collaboratorUidList = new ArrayList<>();
 
     private Button saveButton;
 
@@ -143,9 +149,11 @@ public class RecipeActivity extends AppCompatActivity {
             if (isChecked) {
                 publicLabel.setTextColor(getResources().getColor(R.color.green));
                 privateLabel.setTextColor(getResources().getColor(R.color.black));
+                collaboratorsContainer.setVisibility(View.VISIBLE);
             } else {
                 privateLabel.setTextColor(getResources().getColor(R.color.green));
                 publicLabel.setTextColor(getResources().getColor(R.color.black));
+                collaboratorsContainer.setVisibility(View.GONE);
             }
         });
 
@@ -205,6 +213,14 @@ public class RecipeActivity extends AppCompatActivity {
             }
             return true;
         });
+
+        collaboratorsContainer = findViewById(R.id.collaboratorsContainer);
+        btnAddCollaborator = findViewById(R.id.btnAddCollaborator);
+        collaboratorChipGroup = findViewById(R.id.collaboratorChipGroup);
+
+        btnAddCollaborator.setOnClickListener(v -> showAddCollaboratorDialog());
+
+        loadFriendsList();
     }
 
     private void setupCategorySpinner() {
@@ -297,11 +313,12 @@ public class RecipeActivity extends AppCompatActivity {
         boolean isPublic = recipeVisibilitySwitch.isChecked();
         List<String> cookwareList = getCookwareFromChips();
         ArrayList<Ingredient> ingredientsList = new ArrayList<>(ingredientList);
+        List<String> collaboratorsList = getCollaboratorsFromChips();
 
         // Build recipe object
         Recipe recipe = new Recipe(recipeId, title, desc, category, prepTimeValue,
                 prepTimeUnit, cookTimeValue, cookTimeUnit, servingSize, difficultyLevel,
-                isPublic, tags, ingredientsList, cookwareList);
+                isPublic, tags, ingredientsList, cookwareList, collaboratorsList, uid);
 
         // Write to Firebase
         recipesRef.child(recipeId).setValue(recipe).addOnSuccessListener(unused -> {
@@ -647,5 +664,95 @@ public class RecipeActivity extends AppCompatActivity {
     public void goBack(View view){
         Intent intent = new Intent(this, HomeActivity.class);
         startActivity(intent);
+    }
+    private void loadFriendsList() {
+        if (myAuth.getCurrentUser() == null) {
+            return;
+        }
+
+        String uid = myAuth.getCurrentUser().getUid();
+        DatabaseReference friendsRef = database.getReference("users")
+                .child(uid)
+                .child("friends");
+
+        friendsRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()) {
+                friendsList.clear();
+
+                for (DataSnapshot friendIdSnapshot : task.getResult().getChildren()) {
+                    String friendId = friendIdSnapshot.getKey();
+
+                    // Fetch the friend's details
+                    if (friendId != null) {
+                        DatabaseReference friendRef = database.getReference("users").child(friendId);
+
+                        friendRef.get().addOnCompleteListener(friendTask -> {
+                            if (friendTask.isSuccessful() && friendTask.getResult().exists()) {
+                                String friendName = friendTask.getResult().child("name").getValue(String.class);
+                                String friendEmail = friendTask.getResult().child("email").getValue(String.class);
+
+                                if (friendName != null) {
+                                    User friend = new User(friendId, friendName, friendEmail);
+                                    friendsList.add(friend);
+                                }
+                            }else{
+                                Toast.makeText(this, "Error loading friend details", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }else{
+                        Toast.makeText(this, "Error loading friends", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }else{
+                Toast.makeText(this, "No friends found. Add friends to share recipes with!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void showAddCollaboratorDialog() {
+        if (friendsList.isEmpty()) {
+            Toast.makeText(this, "No friends available. Add friends first.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select Collaborator");
+        
+        String[] friendNames = new String[friendsList.size()];
+        for (int i = 0; i < friendsList.size(); i++) {
+            friendNames[i] = friendsList.get(i).name;
+        }
+
+        builder.setItems(friendNames, (dialog, which) -> {
+            User selectedFriend = friendsList.get(which);
+            
+            // Check if already added
+            if (collaboratorUidList.contains(selectedFriend.uid)) {
+                Toast.makeText(this, "Collaborator already added", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            addCollaboratorChip(selectedFriend);
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+        builder.show();
+    }
+    private void addCollaboratorChip(User friend) {
+        Chip chip = new Chip(this);
+        chip.setText(friend.name);
+        chip.setCloseIconVisible(true);
+        chip.setCheckable(false);
+        chip.setClickable(false);
+
+        chip.setOnCloseIconClickListener(v -> {
+            collaboratorChipGroup.removeView(chip);
+            collaboratorUidList.remove(friend.uid);
+        });
+
+        collaboratorChipGroup.addView(chip);
+        collaboratorUidList.add(friend.uid);
+    }
+    private List<String> getCollaboratorsFromChips() {
+        return new ArrayList<>(collaboratorUidList);
     }
 }
