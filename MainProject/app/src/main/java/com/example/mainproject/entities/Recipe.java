@@ -17,6 +17,7 @@ public class Recipe {
     public List<String> tags;
     public List<Ingredient> ingredients;
     public List<String> cookware;
+    public String notes;
 
     public Recipe() {}
 
