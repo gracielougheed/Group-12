@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.mainproject.R;
+import com.example.mainproject.ShoppingListActivity;
 import com.example.mainproject.ViewRecipeActivity;
 import com.example.mainproject.entities.Recipe;
 import com.google.firebase.auth.FirebaseAuth;
@@ -43,6 +44,17 @@ public class RecipesFragment extends Fragment {
         // Set up Add Recipe button
         view.findViewById(R.id.addRecipeButton).setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), RecipeActivity.class);
+            startActivity(intent);
+        });
+
+        // Set up Shopping List button
+        view.findViewById(R.id.btnGoToShoppingList).setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ShoppingListActivity.class);
+            startActivity(intent);
+        });
+
+        view.findViewById(R.id.sharedRecipes).setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ViewFriendsRecipesActivity.class);
             startActivity(intent);
         });
 
@@ -98,7 +110,6 @@ public class RecipesFragment extends Fragment {
         recipeItem.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), ViewRecipeActivity.class);
             intent.putExtra("title", recipe.title);
-            intent.putExtra("ingredients", "Ingredients not stored separately yet.");
             intent.putExtra("instructions", recipe.description);
             // Passing other details for ViewRecipeActivity
             intent.putExtra("CATEGORY", recipe.category);

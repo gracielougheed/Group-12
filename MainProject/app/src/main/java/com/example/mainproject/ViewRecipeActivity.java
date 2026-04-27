@@ -12,8 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.mainproject.Recipes.EditRecipeActivity;
-import com.example.mainproject.entities.Recipe;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,6 +25,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
     private String recipeId;
     private String recipeTitle;
+    private String ownerUid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,14 +39,18 @@ public class ViewRecipeActivity extends AppCompatActivity {
         TextView cookTimeTextView = findViewById(R.id.recipeCookTime);
         TextView servingsTextView = findViewById(R.id.recipeServingSize);
         TextView instructionsTextView = findViewById(R.id.recipeInstructions);
-        Button editButton = findViewById(R.id.editRecipeButton);
+        Button shareButton = findViewById(R.id.shareRecipeButton);
         Button deleteButton = findViewById(R.id.deleteRecipeButton);
+
+        // Get current user UID
+        String currentUid = FirebaseAuth.getInstance().getUid();
 
         // Retrieve data from intent
         if (getIntent() != null) {
             recipeId = getIntent().getStringExtra("RECIPE_ID");
             recipeTitle = getIntent().getStringExtra("title");
-            
+            ownerUid = getIntent().getStringExtra("OWNER_UID");
+
             titleTextView.setText(recipeTitle);
             categoryTextView.setText(getIntent().getStringExtra("CATEGORY"));
             
@@ -61,12 +64,11 @@ public class ViewRecipeActivity extends AppCompatActivity {
             instructionsTextView.setText(getIntent().getStringExtra("instructions"));
         }
 
-        // Edit button
-        editButton.setOnClickListener(v -> {
-            Intent intent = new Intent(ViewRecipeActivity.this, EditRecipeActivity.class);
-            intent.putExtra("RECIPE_ID", recipeId);
-            startActivity(intent);
-        });
+        // Hide share and delete buttons if user is not the owner
+        if(ownerUid != null && !ownerUid.equals(currentUid)){
+            shareButton.setVisibility(View.GONE);
+            deleteButton.setVisibility(View.GONE);
+        }
 
         // Set up delete button with confirmation dialog
         deleteButton.setOnClickListener(new View.OnClickListener() {
@@ -75,23 +77,11 @@ public class ViewRecipeActivity extends AppCompatActivity {
                 showDeleteConfirmationDialog();
             }
         });
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        reloadRecipe();
-    }
-
-    private void reloadRecipe() {
-        String uid = FirebaseAuth.getInstance().getUid();
-        DatabaseReference ref = FirebaseDatabase.getInstance(
-                "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/")
-                .getReference("users").child(uid).child("recipes").child(recipeId);
-
-        ref.get().addOnSuccessListener(snapshot -> {
-            Recipe r = snapshot.getValue(Recipe.class);
-            if (r != null) populateUI(r);
+        shareButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ShareRecipeActivity.class);
+            intent.putExtra("RECIPE_ID", recipeId);
+            startActivity(intent);
         });
     }
 
@@ -134,32 +124,5 @@ public class ViewRecipeActivity extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    private void populateUI(Recipe r) {
-        TextView titleTextView = findViewById(R.id.recipeTitle);
-        TextView categoryTextView = findViewById(R.id.recipeCategory);
-        TextView prepTimeTextView = findViewById(R.id.recipePrepTime);
-        TextView cookTimeTextView = findViewById(R.id.recipeCookTime);
-        TextView servingsTextView = findViewById(R.id.recipeServingSize);
-        TextView instructionsTextView = findViewById(R.id.recipeInstructions);
-
-        titleTextView.setText(r.title);
-        categoryTextView.setText(r.category);
-        prepTimeTextView.setText(r.prepTimeValue + " " + r.prepTimeUnit);
-        cookTimeTextView.setText(r.cookTimeValue + " " + r.cookTimeUnit);
-        servingsTextView.setText(String.valueOf(r.servingSize));
-
-        // Join instructions into a readable block
-        if (r.instructions != null && !r.instructions.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < r.instructions.size(); i++) {
-                sb.append(i + 1).append(". ").append(r.instructions.get(i)).append("\n\n");
-            }
-            instructionsTextView.setText(sb.toString().trim());
-        }
-        else {
-            instructionsTextView.setText("No instructions available");
-        }
     }
 }

@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import com.example.mainproject.Friends.FriendsFragment;
 import com.example.mainproject.Recipes.RecipeActivity;
 import com.example.mainproject.Recipes.RecipesFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -23,10 +24,21 @@ public class HomeActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
-        // Set default fragment
+        String fragmentToOpen = getIntent().getStringExtra("openFragment");
+
         if (savedInstanceState == null) {
+            Fragment defaultFragment;
+
+            if ("friends".equals(fragmentToOpen)) {
+                defaultFragment = new FriendsFragment();
+                bottomNav.setSelectedItemId(R.id.nav_friends);
+            } else {
+                defaultFragment = new RecipesFragment();
+                bottomNav.setSelectedItemId(R.id.nav_recipes);
+            }
+
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new RecipesFragment())
+                    .replace(R.id.fragment_container, defaultFragment)
                     .commit();
         }
 

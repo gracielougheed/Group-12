@@ -106,14 +106,12 @@
             android:text="Instructions text" />
 
         <Button
-            android:id="@+id/editRecipeButton"
+            android:id="@+id/shareRecipeButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Edit Recipe"
-            android:backgroundTint="#73AF6F"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="8dp" />
-
+            android:text="Share Recipe"
+            android:backgroundTint="#007E6E"
+            android:textColor="#FFFFFF" />
         <Button
             android:id="@+id/deleteRecipeButton"
             android:layout_width="match_parent"

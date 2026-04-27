@@ -3,99 +3,131 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!--Fragment of Recipe View -->
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="#FFFFFF"
-        android:padding="25dp">
+        android:layout_height="match_parent">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:fontFamily="@font/roboto"
-            android:text="My Recipes"
-            android:textSize="24sp"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:id="@+id/breakfastHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Breakfast"
-            android:textSize="20sp"
-            android:textStyle="normal"
-            android:layout_marginBottom="8dp" />
-
-        <!-- Breakfast Container -->
         <LinearLayout
-            android:id="@+id/breakfastContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginBottom="24dp" />
+            android:background="#FFFFFF"
+            android:padding="25dp">
 
-        <TextView
-            android:id="@+id/lunchHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Lunch"
-            android:textSize="20sp"
-            android:textStyle="normal"
-            android:layout_marginBottom="8dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="@font/roboto"
+                android:text="My Recipes"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"/>
 
-        <!-- Lunch Container -->
-        <LinearLayout
-            android:id="@+id/lunchContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="16dp">
 
-        <TextView
-            android:id="@+id/dinnerHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Dinner"
-            android:textSize="20sp"
-            android:textStyle="normal"
-            android:layout_marginBottom="8dp" />
+                <Button
+                    android:id="@+id/addRecipeButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="Add Recipe"
+                    android:backgroundTint="#73AF6F" />
 
-        <!-- Dinner Container -->
-        <LinearLayout
-            android:id="@+id/dinnerContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp" />
+                <Button
+                    android:id="@+id/sharedRecipes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="View Friends Recipes"
+                    android:backgroundTint="#007E6E" />
 
-        <TextView
-            android:id="@+id/dessertHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Dessert"
-            android:textSize="20sp"
-            android:textStyle="normal"
-            android:layout_marginBottom="8dp" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center">
+                <Button
+                    android:id="@+id/btnGoToShoppingList"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Shopping List"
+                    android:backgroundTint="#73AF6F" />
+            </LinearLayout>
 
-        <!-- Dessert Container -->
-        <LinearLayout
-            android:id="@+id/dessertContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            <!-- Breakfast Category -->
+            <TextView
+                android:id="@+id/breakfastHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Breakfast"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
 
-        <Button
-            android:id="@+id/addRecipeButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="24dp"
-            android:text="Add Recipe"
-            android:backgroundTint="#73AF6F"
-            android:onClick="addRecipe" />
+            <LinearLayout
+                android:id="@+id/breakfastContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp" />
 
-    </LinearLayout>
+            <!-- Lunch Category -->
+            <TextView
+                android:id="@+id/lunchHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lunch"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/lunchContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Dinner Category -->
+            <TextView
+                android:id="@+id/dinnerHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dinner"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/dinnerContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Dessert Category -->
+            <TextView
+                android:id="@+id/dessertHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dessert"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/dessertContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp" />
+
+        </LinearLayout>
+    </ScrollView>
 </FrameLayout>
