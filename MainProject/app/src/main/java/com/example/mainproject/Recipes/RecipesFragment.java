@@ -24,7 +24,7 @@ import com.google.firebase.database.ValueEventListener;
 
 public class RecipesFragment extends Fragment {
 
-    private LinearLayout breakfastContainer, lunchContainer, dinnerContainer, dessertContainer;
+    private LinearLayout breakfastContainer, lunchContainer, dinnerContainer, dessertContainer, snackContainer;
     private DatabaseReference recipesRef;
 
     public RecipesFragment() {
@@ -40,6 +40,7 @@ public class RecipesFragment extends Fragment {
         lunchContainer = view.findViewById(R.id.lunchContainer);
         dinnerContainer = view.findViewById(R.id.dinnerContainer);
         dessertContainer = view.findViewById(R.id.dessertContainer);
+        snackContainer = view.findViewById(R.id.snackContainer);
 
         // Set up Add Recipe button
         view.findViewById(R.id.addRecipeButton).setOnClickListener(v -> {
@@ -80,6 +81,7 @@ public class RecipesFragment extends Fragment {
                 lunchContainer.removeAllViews();
                 dinnerContainer.removeAllViews();
                 dessertContainer.removeAllViews();
+                snackContainer.removeAllViews();
 
                 for (DataSnapshot recipeSnapshot : snapshot.getChildren()) {
                     Recipe recipe = recipeSnapshot.getValue(Recipe.class);
@@ -130,8 +132,10 @@ public class RecipesFragment extends Fragment {
             lunchContainer.addView(recipeItem);
         } else if (category.contains("dinner")) {
             dinnerContainer.addView(recipeItem);
-        } else {
+        } else if (category.contains("dessert")){
             dessertContainer.addView(recipeItem);
+        } else {
+            snackContainer.addView(recipeItem);
         }
     }
 }
