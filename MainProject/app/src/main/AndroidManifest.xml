@@ -40,6 +40,9 @@
             android:name=".Recipes.RecipeActivity"
             android:exported="false" />
         <activity
+            android:name=".Recipes.EditRecipeActivity"
+            android:exported="false" />
+        <activity
             android:name=".MealPlannerActivity"
             android:exported="false" />
         <activity

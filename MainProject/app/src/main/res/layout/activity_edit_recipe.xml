@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Recipes.EditRecipeActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <!--Screen for Create Recipe-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="#FFFFFF">
+
+            <!--Container for Header-->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:orientation="horizontal"
+                android:background="#007E6E">
+
+                <ImageView
+                    android:id="@+id/backArrow"
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:layout_gravity="start"
+                    android:clickable="true"
+                    android:contentDescription="Back"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_arrow_back_24"
+                    android:onClick="goBack"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="55dp"
+                    android:fontFamily="@font/roboto"
+                    android:layout_gravity="center"
+                    android:text="Edit Recipe"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFF"
+                    android:layout_marginTop="10dp"/>
+            </FrameLayout>
+
+            <!--Container for Recipe Form-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="25dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:text="Recipe Information"
+                    android:textSize="22sp"
+                    android:textStyle="normal" />
+
+                <EditText
+                    android:id="@+id/recipeTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Recipe Title"/>
+
+                <EditText
+                    android:id="@+id/recipeDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Recipe Description"/>
+
+                <!--Container for Category Dropdown-->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="10dp" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/roboto"
+                        android:text="Recipe Category        "
+                        android:textSize="18sp"
+                        android:textStyle="normal" />
+
+                    <Spinner
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/recipeCategory"
+                        android:fontFamily="@font/roboto"
+                        android:spinnerMode="dropdown"/>
+                </LinearLayout>
+
+                <!-- Container for Prep Time Quantity -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" >
+
+                    <EditText
+                        android:id="@+id/recipePrepTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Enter Recipe Prep Time" />
+
+                    <Spinner
+                        android:id="@+id/recipePrepTimeUnits"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/roboto"
+                        android:spinnerMode="dropdown"
+                        android:padding="10dp"/>
+                </LinearLayout>
+
+                <!-- Container for Cook Time Quantity -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" >
+
+                    <EditText
+                        android:id="@+id/recipeCookTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Enter Recipe Cook Time" />
+
+                    <Spinner
+                        android:id="@+id/recipeCookTimeUnits"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/roboto"
+                        android:spinnerMode="dropdown"
+                        android:padding="10dp"/>
+                </LinearLayout>
+
+                <EditText
+                    android:id="@+id/recipeServingSize"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:hint="Enter Recipe Serving Size" />
+
+                <!-- Container for Difficulty Level -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/roboto"
+                        android:text="Recipe Difficulty Level   "
+                        android:textSize="18sp"
+                        android:textStyle="normal" />
+
+                    <Spinner
+                        android:id="@+id/recipeDifficultyLevel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/roboto"
+                        android:spinnerMode="dropdown"
+                        android:padding="10dp" />
+                </LinearLayout>
+
+                <!-- Container for Custom Tags -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/customTagsText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Enter or Select Recipe Tags"
+                        android:inputType="text"
+                        android:fontFamily="@font/roboto"
+                        android:imeOptions="actionDone" />
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/tagChipGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        app:singleLine="false"
+                        app:chipSpacing="8dp" />
+                </LinearLayout>
+
+                <!-- Container for Public/Private -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/roboto"
+                        android:text="Recipe Visibility      "
+                        android:textSize="18sp"
+                        android:textStyle="normal"
+                        android:layout_marginEnd="12dp" />
+
+                    <TextView
+                        android:id="@+id/privateLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Private"
+                        android:textSize="15sp"
+                        android:layout_marginEnd="8dp" />
+
+                    <Switch
+                        android:id="@+id/recipeVisibilitySwitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:showText="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <TextView
+                        android:id="@+id/publicLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Public"
+                        android:textSize="15sp" />
+
+                </LinearLayout>
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:text="Instructions"
+                    android:textSize="22sp"
+                    android:textStyle="normal"
+                    android:layout_marginTop="36dp" />
+
+                <!-- Container for Adding Instructions -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:orientation="vertical"
+                    android:padding="8dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/instruction_box_border">
+
+                    <Button
+                        android:id="@+id/btnAddInstruction"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:text="+"
+                        android:backgroundTint="#73AF6F"
+                        android:layout_gravity="end"
+                        android:textSize="20sp" />
+
+                    <ListView
+                        android:id="@+id/listViewInstructions"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:dividerHeight="1dp"
+                        android:layout_marginTop="12dp" />
+                </LinearLayout>
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:text="@string/ingredients_label"
+                    android:textSize="22sp"
+                    android:layout_marginTop="36dp" />
+
+                <!-- Container for Ingredients Layout -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:orientation="vertical"
+                    android:padding="8dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/instruction_box_border" >
+
+                    <Button
+                        android:id="@+id/btnAddIngredient"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:text="@string/add_ingredient_button"
+                        android:backgroundTint="#73AF6F"
+                        android:layout_gravity="end"
+                        android:textSize="20sp" />
+
+                    <ListView
+                        android:id="@+id/listViewIngredients"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:dividerHeight="1dp"
+                        android:layout_marginTop="12dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:text="@string/cookware_label"
+                    android:textSize="22sp"
+                    android:layout_marginTop="24dp" />
+
+                <!-- Container for Cookware Layout -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" >
+
+                    <AutoCompleteTextView
+                        android:id="@+id/cookwareText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/cookware_hint"
+                        android:imeOptions="actionDone" />
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/cookwareChipGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp" />
+                </LinearLayout>
+
+
+                <!-- Update Button -->
+                <Button
+                    android:id="@+id/updateRecipeButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="20dp"
+                    android:text="Update Recipe"
+                    android:backgroundTint="#73AF6F"
+                    android:onClick="updateRecipe"
+                    android:textSize="19sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
