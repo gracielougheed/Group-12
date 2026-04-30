@@ -1,4 +1,4 @@
-package com.example.mainproject;
+package com.example.mainproject.Recipes;
 
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -12,8 +12,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.mainproject.R;
 import com.example.mainproject.Recipes.EditRecipeActivity;
-import com.example.mainproject.ShareRecipeActivity;
+import com.example.mainproject.Recipes.ShareRecipeActivity;
 import com.example.mainproject.entities.Ingredient;
 import com.example.mainproject.entities.Recipe;
 import com.google.firebase.auth.FirebaseAuth;
@@ -50,6 +51,9 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
     private ValueEventListener recipeListener;
     private DatabaseReference recipeRef;
+    
+    private boolean isOwner;
+    private boolean isCollaborator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,11 +72,11 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
         bindViews();
 
-        // Hide owner-only buttons if viewing someone else's recipe
-        boolean isOwner = ownerUid.equals(currentUid);
-        btnEdit.setVisibility(isOwner ? View.VISIBLE : View.GONE);
-        btnShare.setVisibility(isOwner ? View.VISIBLE : View.GONE);
-        btnDelete.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+        isOwner = ownerUid.equals(currentUid);
+
+        btnEdit.setVisibility(View.GONE);
+        btnShare.setVisibility(View.GONE);
+        btnDelete.setVisibility(View.GONE);
 
         btnEdit.setOnClickListener(v -> openEditActivity());
         btnShare.setOnClickListener(v -> {
@@ -131,6 +135,17 @@ public class ViewRecipeActivity extends AppCompatActivity {
     }
 
     private void populateUI(Recipe r) {
+        // Check if current user is a collaborator
+        String currentUid = FirebaseAuth.getInstance().getUid();
+        isCollaborator = false;
+        if (r.collaborators != null && currentUid != null) {
+            isCollaborator = r.collaborators.contains(currentUid);
+        }
+
+        btnEdit.setVisibility((isOwner || isCollaborator) ? View.VISIBLE : View.GONE);
+        btnShare.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+        btnDelete.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+        
         tvTitle.setText(r.title != null ? r.title : "");
         tvCategory.setText(r.category != null ? r.category : "");
 
@@ -187,6 +202,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
     private void openEditActivity() {
         Intent intent = new Intent(this, EditRecipeActivity.class);
         intent.putExtra("RECIPE_ID", recipeId);
+        intent.putExtra("OWNER_UID", ownerUid);
         startActivity(intent);
         // No finish() — user returns here; the realtime listener will refresh data automatically.
     }

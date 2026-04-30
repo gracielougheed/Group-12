@@ -94,8 +94,21 @@ public class CollaborativeActivity extends AppCompatActivity {
                             recipeTextView.setBackgroundResource(android.R.drawable.list_selector_background);
                             recipeTextView.setClickable(true);
                             recipeTextView.setFocusable(true);
-                            
-                            //Needs on click listener to open edit recipe activity
+
+                        recipeTextView.setOnClickListener(v -> {
+                            Intent intent = new Intent(this, ViewRecipeActivity.class);
+                            intent.putExtra("RECIPE_ID", recipeSnapshot.getKey());
+                            intent.putExtra("OWNER_UID", recipeSnapshot.child("ownerUid").getValue(String.class));
+                            intent.putExtra("title", recipeName);
+                            intent.putExtra("CATEGORY", recipeSnapshot.child("category").getValue(String.class));
+                            intent.putExtra("PREP_TIME", recipeSnapshot.child("prepTimeValue").getValue(Integer.class));
+                            intent.putExtra("PREP_UNIT", recipeSnapshot.child("prepTimeUnit").getValue(String.class));
+                            intent.putExtra("COOK_TIME", recipeSnapshot.child("cookTimeValue").getValue(Integer.class));
+                            intent.putExtra("COOK_UNIT", recipeSnapshot.child("cookTimeUnit").getValue(String.class));
+                            intent.putExtra("SERVINGS", recipeSnapshot.child("servingSize").getValue(Integer.class));
+                            intent.putExtra("instructions", recipeSnapshot.child("description").getValue(String.class));
+                            startActivity(intent);
+                        });
                             
                             collabRecipesContainer.addView(recipeTextView);
                     }
@@ -136,7 +149,20 @@ public class CollaborativeActivity extends AppCompatActivity {
                                     recipeTextView.setClickable(true);
                                     recipeTextView.setFocusable(true);
                                     
-                                    //Needs on click listener to open edit recipe activity
+                                    recipeTextView.setOnClickListener(v -> {
+                                        Intent intent = new Intent(this, ViewRecipeActivity.class);
+                                        intent.putExtra("RECIPE_ID", finalRecipeId);
+                                        intent.putExtra("OWNER_UID", finalFriendUid);
+                                        intent.putExtra("title", recipeName);
+                                        intent.putExtra("CATEGORY", recipeSnapshot.child("category").getValue(String.class));
+                                        intent.putExtra("PREP_TIME", recipeSnapshot.child("prepTimeValue").getValue(Integer.class));
+                                        intent.putExtra("PREP_UNIT", recipeSnapshot.child("prepTimeUnit").getValue(String.class));
+                                        intent.putExtra("COOK_TIME", recipeSnapshot.child("cookTimeValue").getValue(Integer.class));
+                                        intent.putExtra("COOK_UNIT", recipeSnapshot.child("cookTimeUnit").getValue(String.class));
+                                        intent.putExtra("SERVINGS", recipeSnapshot.child("servingSize").getValue(Integer.class));
+                                        intent.putExtra("instructions", recipeSnapshot.child("description").getValue(String.class));
+                                        startActivity(intent);
+                                    });
                                     
                                     collabRecipesContainer.addView(recipeTextView);
                                 });
