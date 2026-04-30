@@ -17,6 +17,7 @@ public class Recipe {
     public List<String> tags;
     public List<Ingredient> ingredients;
     public List<String> cookware;
+    public List<String> instructions;
     public String notes;
 
     public Recipe() {}
@@ -24,7 +25,7 @@ public class Recipe {
     public Recipe(String recipeId, String title, String description, String category, int prepTimeValue,
                   String prepTimeUnit, int cookTimeValue, String cookTimeUnit, int servingSize,
                   int difficultyLevel, boolean isPublic, List<String> tags,
-                  List<Ingredient> ingredients, List<String> cookware) {
+                  List<Ingredient> ingredients, List<String> cookware, List<String> instructions) {
         this.recipeId = recipeId;
         this.title = title;
         this.description = description;
@@ -39,5 +40,6 @@ public class Recipe {
         this.tags = tags;
         this.ingredients = ingredients;
         this.cookware = cookware;
+        this.instructions = instructions;
     }
 }

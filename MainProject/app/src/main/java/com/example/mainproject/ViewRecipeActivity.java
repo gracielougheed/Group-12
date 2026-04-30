@@ -1,19 +1,22 @@
 package com.example.mainproject;
 
-import android.content.DialogInterface;
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.example.mainproject.Recipes.EditRecipeActivity;
+import com.example.mainproject.ShareRecipeActivity;
+import com.example.mainproject.entities.Ingredient;
+import com.example.mainproject.entities.Recipe;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -22,13 +25,35 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 /**
- * ViewRecipeActivity displays details of a recipe and allows deletion.
+ * ViewRecipeActivity loads and displays full recipe details from Firebase.
+ * Always reads fresh data so edits are immediately reflected.
  */
 public class ViewRecipeActivity extends AppCompatActivity {
 
+    private static final String DB_URL =
+            "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/";
+
     private String recipeId;
-    private String recipeTitle;
+    private String ownerUid;
+
+    // Header
+    private TextView tvTitle;
+
+    // Info row
+    private TextView tvCategory, tvPrepTime, tvCookTime, tvServings, tvDifficulty, tvVisibility;
+
+    // Sections
+    private TextView tvTags, tvCookware;
+    private LinearLayout layoutInstructions, layoutIngredients;
+
+    // Notes
     private EditText notesEditText;
+    private Button saveNotesButton;
+
+    // Buttons
+    private Button btnEdit, btnShare, btnDelete;
+
+    private ValueEventListener recipeListener;
     private DatabaseReference recipeRef;
 
     @Override
@@ -36,75 +61,141 @@ public class ViewRecipeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_recipe);
 
-        // Find views
-        TextView titleTextView = findViewById(R.id.recipeTitle);
-        TextView categoryTextView = findViewById(R.id.recipeCategory);
-        TextView prepTimeTextView = findViewById(R.id.recipePrepTime);
-        TextView cookTimeTextView = findViewById(R.id.recipeCookTime);
-        TextView servingsTextView = findViewById(R.id.recipeServingSize);
-        TextView instructionsTextView = findViewById(R.id.recipeInstructions);
-        Button deleteButton = findViewById(R.id.deleteRecipeButton);
-        notesEditText = findViewById(R.id.recipeNotes);
-        Button saveNotesButton = findViewById(R.id.saveNotesButton);
+        recipeId = getIntent().getStringExtra("RECIPE_ID");
+        ownerUid = getIntent().getStringExtra("OWNER_UID");
 
-        // Retrieve data from intent
-        if (getIntent() != null) {
-            recipeId = getIntent().getStringExtra("RECIPE_ID");
-            recipeTitle = getIntent().getStringExtra("title");
+        String currentUid = FirebaseAuth.getInstance().getUid();
 
-            titleTextView.setText(recipeTitle);
-            categoryTextView.setText(getIntent().getStringExtra("CATEGORY"));
-
-            String prepTime = getIntent().getIntExtra("PREP_TIME", 0) + " " + getIntent().getStringExtra("PREP_UNIT");
-            prepTimeTextView.setText(prepTime);
-
-            String cookTime = getIntent().getIntExtra("COOK_TIME", 0) + " " + getIntent().getStringExtra("COOK_UNIT");
-            cookTimeTextView.setText(cookTime);
-
-            servingsTextView.setText(String.valueOf(getIntent().getIntExtra("SERVINGS", 1)));
-            instructionsTextView.setText(getIntent().getStringExtra("instructions"));
+        // If no ownerUid provided, assume it's the current user's recipe
+        if (ownerUid == null) {
+            ownerUid = currentUid;
         }
 
-        // Set up Firebase reference and load notes
-        String uid = FirebaseAuth.getInstance().getUid();
-        if (uid != null && recipeId != null) {
-            recipeRef = FirebaseDatabase.getInstance(
-                    "https://cookbook-d313f-default-rtdb.europe-west1.firebasedatabase.app/"
-            ).getReference("users").child(uid).child("recipes").child(recipeId);
-            loadNotes();
-        }
+        bindViews();
 
-        // Set up save notes button
-        saveNotesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                saveNotes();
-            }
-        });
+        // Hide owner-only buttons if viewing someone else's recipe
+        boolean isOwner = ownerUid.equals(currentUid);
+        btnEdit.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+        btnShare.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+        btnDelete.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+        notesEditText.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+        saveNotesButton.setVisibility(isOwner ? View.VISIBLE : View.GONE);
 
-        // Set up delete button with confirmation dialog
-        deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDeleteConfirmationDialog();
-            }
+        btnEdit.setOnClickListener(v -> openEditActivity());
+        btnShare.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ShareRecipeActivity.class);
+            intent.putExtra("RECIPE_ID", recipeId);
+            startActivity(intent);
         });
+        btnDelete.setOnClickListener(v -> confirmDelete());
+        saveNotesButton.setOnClickListener(v -> saveNotes());
+
+        // Load from Firebase
+        recipeRef = FirebaseDatabase.getInstance(DB_URL)
+                .getReference("users").child(ownerUid).child("recipes").child(recipeId);
+
+        listenForRecipe();
     }
 
-    private void loadNotes() {
-        recipeRef.child("notes").addListenerForSingleValueEvent(new ValueEventListener() {
+    private void bindViews() {
+        tvTitle       = findViewById(R.id.tvTitle);
+        tvCategory    = findViewById(R.id.tvCategory);
+        tvPrepTime    = findViewById(R.id.tvPrepTime);
+        tvCookTime    = findViewById(R.id.tvCookTime);
+        tvServings    = findViewById(R.id.tvServings);
+        tvDifficulty  = findViewById(R.id.tvDifficulty);
+        tvVisibility  = findViewById(R.id.tvVisibility);
+        tvTags        = findViewById(R.id.tvTags);
+        tvCookware    = findViewById(R.id.tvCookware);
+        layoutInstructions = findViewById(R.id.layoutInstructions);
+        layoutIngredients  = findViewById(R.id.layoutIngredients);
+        notesEditText      = findViewById(R.id.recipeNotes);
+        saveNotesButton    = findViewById(R.id.saveNotesButton);
+        btnEdit   = findViewById(R.id.btnEdit);
+        btnShare  = findViewById(R.id.btnShare);
+        btnDelete = findViewById(R.id.btnDelete);
+    }
+
+    /** Attaches a realtime listener so the screen refreshes after an edit. */
+    private void listenForRecipe() {
+        recipeListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String notes = snapshot.getValue(String.class);
-                if (notes != null) {
-                    notesEditText.setText(notes);
+                Recipe recipe = snapshot.getValue(Recipe.class);
+                if (recipe != null) {
+                    populateUI(recipe);
+                } else {
+                    Toast.makeText(ViewRecipeActivity.this,
+                            "Recipe not found.", Toast.LENGTH_SHORT).show();
+                    finish();
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ViewRecipeActivity.this,
+                        "Failed to load recipe.", Toast.LENGTH_SHORT).show();
             }
-        });
+        };
+        recipeRef.addValueEventListener(recipeListener);
+    }
+
+    private void populateUI(Recipe r) {
+        tvTitle.setText(r.title != null ? r.title : "");
+        tvCategory.setText(r.category != null ? r.category : "");
+
+        tvPrepTime.setText(r.prepTimeValue + " " + (r.prepTimeUnit != null ? r.prepTimeUnit : ""));
+        tvCookTime.setText(r.cookTimeValue + " " + (r.cookTimeUnit != null ? r.cookTimeUnit : ""));
+        tvServings.setText(String.valueOf(r.servingSize));
+
+        tvDifficulty.setText("Difficulty: " + r.difficultyLevel);
+        tvVisibility.setText(r.isPublic ? "Public" : "Private");
+
+        // Tags
+        if (r.tags != null && !r.tags.isEmpty()) {
+            tvTags.setText(android.text.TextUtils.join(", ", r.tags));
+        } else {
+            tvTags.setText("None");
+        }
+
+        // Cookware
+        if (r.cookware != null && !r.cookware.isEmpty()) {
+            tvCookware.setText(android.text.TextUtils.join(", ", r.cookware));
+        } else {
+            tvCookware.setText("None");
+        }
+
+        // Instructions
+        layoutInstructions.removeAllViews();
+        if (r.instructions != null) {
+            for (int i = 0; i < r.instructions.size(); i++) {
+                TextView tv = makeBodyTextView((i + 1) + ". " + r.instructions.get(i));
+                layoutInstructions.addView(tv);
+            }
+        }
+
+        // Ingredients
+        layoutIngredients.removeAllViews();
+        if (r.ingredients != null) {
+            for (Ingredient ing : r.ingredients) {
+                String line = ing.quantity + " " + ing.unit + " " + ing.name;
+                if (ing.prep != null && !ing.prep.isEmpty()) line += " (" + ing.prep + ")";
+                layoutIngredients.addView(makeBodyTextView("• " + line));
+            }
+        }
+
+        // Notes
+        if (r.notes != null) {
+            notesEditText.setText(r.notes);
+        }
+    }
+
+    private TextView makeBodyTextView(String text) {
+        TextView tv = new TextView(this);
+        tv.setText(text);
+        tv.setTextSize(15f);
+        tv.setPadding(0, 6, 0, 6);
+        return tv;
     }
 
     private void saveNotes() {
@@ -113,51 +204,51 @@ public class ViewRecipeActivity extends AppCompatActivity {
             return;
         }
         String notes = notesEditText.getText().toString().trim();
-        recipeRef.child("notes").setValue(notes).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Toast.makeText(ViewRecipeActivity.this, "Notes saved", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(ViewRecipeActivity.this, "Failed to save notes", Toast.LENGTH_SHORT).show();
-                }
+        recipeRef.child("notes").setValue(notes).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(this, "Notes saved", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Failed to save notes", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void showDeleteConfirmationDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Delete Recipe");
-        builder.setMessage("Are you sure you want to delete '" + recipeTitle + "'?");
+    private void openEditActivity() {
+        Intent intent = new Intent(this, EditRecipeActivity.class);
+        intent.putExtra("RECIPE_ID", recipeId);
+        startActivity(intent);
+    }
 
-        builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                deleteRecipe();
-            }
-        });
-
-        builder.setNegativeButton("Cancel", null);
-
-        builder.create().show();
+    private void confirmDelete() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Recipe")
+                .setMessage("Are you sure you want to permanently delete this recipe?")
+                .setPositiveButton("Delete", (dialog, which) -> deleteRecipe())
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void deleteRecipe() {
-        if (recipeRef == null) {
-            Toast.makeText(this, "Error: Could not find recipe", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        recipeRef.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Toast.makeText(ViewRecipeActivity.this, "Recipe deleted", Toast.LENGTH_SHORT).show();
-                    finish(); // Close activity and return to list
-                } else {
-                    Toast.makeText(ViewRecipeActivity.this, "Failed to delete recipe", Toast.LENGTH_SHORT).show();
-                }
+        recipeRef.removeValue().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(this, "Recipe deleted.", Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                Toast.makeText(this, "Failed to delete recipe.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    /** Go back arrow in header */
+    public void goBack(View view) {
+        finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (recipeRef != null && recipeListener != null) {
+            recipeRef.removeEventListener(recipeListener);
+        }
     }
 }
