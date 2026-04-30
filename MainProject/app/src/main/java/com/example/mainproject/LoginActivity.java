@@ -37,15 +37,15 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.login_button);
     }
 
-//    @Override
-//    protected void onStart() {
-//        super.onStart();
-//        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-//            Intent intent = new Intent(this, HomeActivity.class);
-//            startActivity(intent);
-//            finish();
-//        }
-//    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            Intent intent = new Intent(this, HomeActivity.class);
+            startActivity(intent);
+            finish();
+        }
+    }
 
     /**
      * Handles the login process when the user clicks the "Login" button.
