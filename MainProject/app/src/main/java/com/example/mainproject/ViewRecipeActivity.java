@@ -248,38 +248,44 @@ public class ViewRecipeActivity extends AppCompatActivity {
                 tv.setTextSize(14f);
                 tv.setTextColor(Color.BLACK);
 
-                ParsedTime pt = (ParsedTime) parseTimesFromText(step);
-                if (pt != null) {
+                List<ParsedTime> times = parseTimesFromText(step);
+
+                if (!times.isEmpty()) {
                     SpannableString spannable = new SpannableString(fullText);
 
                     int offset = (index + 1 + ". ").length();
-                    int start = offset + pt.startIndex;
-                    int end = offset + pt.endIndex;
 
-                    ClickableSpan span = new ClickableSpan() {
-                        @Override
-                        public void onClick(@NonNull View widget) {
-                            showOrAddTimer(
-                                    "step_" + index,          // use index, not i
-                                    "Step " + (index + 1),
-                                    pt.millis
-                            );
-                        }
+                    for (ParsedTime pt : times) {
+                        int start = offset + pt.startIndex;
+                        int end = offset + pt.endIndex;
 
-                        @Override
-                        public void updateDrawState(@NonNull TextPaint ds) {
-                            super.updateDrawState(ds);
-                            ds.setColor(Color.parseColor("#007E6E"));
-                            ds.setUnderlineText(true);
-                        }
-                    };
+                        ClickableSpan span = new ClickableSpan() {
+                            @Override
+                            public void onClick(@NonNull View widget) {
+                                showOrAddTimer(
+                                        "step_" + index + "_" + start,   // unique ID per match
+                                        "Step " + (index + 1),
+                                        pt.millis
+                                );
+                            }
 
-                    spannable.setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            @Override
+                            public void updateDrawState(@NonNull TextPaint ds) {
+                                super.updateDrawState(ds);
+                                ds.setColor(Color.parseColor("#007E6E"));
+                                ds.setUnderlineText(true);
+                            }
+                        };
+
+                        spannable.setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    }
+
                     tv.setText(spannable);
                     tv.setMovementMethod(LinkMovementMethod.getInstance());
                 } else {
                     tv.setText(fullText);
                 }
+
 
                 layoutInstructions.addView(tv);
             }
