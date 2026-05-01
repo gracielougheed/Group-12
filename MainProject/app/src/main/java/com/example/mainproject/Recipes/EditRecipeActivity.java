@@ -21,9 +21,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.mainproject.R;
 import com.example.mainproject.entities.Ingredient;
 import com.example.mainproject.entities.Recipe;
+import com.example.mainproject.entities.User;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -48,6 +50,11 @@ public class EditRecipeActivity extends AppCompatActivity {
     private TextView privateLabel, publicLabel;
     private Button btnAddInstruction, btnAddIngredient, updateButton;
     private ListView listViewInstructions, listViewIngredients;
+    private LinearLayout collaboratorsContainer;
+    private Button btnAddCollaborator;
+    private ChipGroup collaboratorChipGroup;
+    private List<User> friendsList = new ArrayList<>();
+    private List<String> collaboratorUidList = new ArrayList<>();
 
     // Data
     private final ArrayList<String> instructionList = new ArrayList<>();
@@ -57,7 +64,9 @@ public class EditRecipeActivity extends AppCompatActivity {
     private ArrayAdapter<String> ingredientAdapter;
 
     private String recipeId;
+    private String ownerUid;
     private Recipe originalRecipe;
+    private boolean isOwner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +75,14 @@ public class EditRecipeActivity extends AppCompatActivity {
 
         myAuth = FirebaseAuth.getInstance();
         recipeId = getIntent().getStringExtra("RECIPE_ID");
+        ownerUid = getIntent().getStringExtra("OWNER_UID");
+
+        if (ownerUid == null) {
+            ownerUid = myAuth.getCurrentUser() != null ? myAuth.getCurrentUser().getUid() : null;
+        }
+
+        String currentUid = myAuth.getCurrentUser() != null ? myAuth.getCurrentUser().getUid() : null;
+        isOwner = ownerUid != null && ownerUid.equals(currentUid);
 
         if (recipeId == null) {
             Toast.makeText(this, "No recipe ID provided", Toast.LENGTH_SHORT).show();
@@ -80,6 +97,12 @@ public class EditRecipeActivity extends AppCompatActivity {
         setupInstructionList();
         setupIngredientList();
         setupVisibilitySwitch();
+        setupCollaborators();
+
+        if (isOwner) {
+            loadFriendsList();
+        }
+        
         loadRecipeFromFirebase();
     }
 
@@ -105,6 +128,9 @@ public class EditRecipeActivity extends AppCompatActivity {
         cookwareText          = findViewById(R.id.cookwareText);
         cookwareChipGroup     = findViewById(R.id.cookwareChipGroup);
         updateButton          = findViewById(R.id.updateRecipeButton);
+        collaboratorsContainer = findViewById(R.id.collaboratorsContainer);
+        btnAddCollaborator    = findViewById(R.id.btnAddCollaborator);
+        collaboratorChipGroup = findViewById(R.id.collaboratorChipGroup);
 
         updateButton.setOnClickListener(v -> updateRecipe());
     }
@@ -204,25 +230,33 @@ public class EditRecipeActivity extends AppCompatActivity {
             if (isChecked) {
                 publicLabel.setTextColor(getResources().getColor(R.color.green, getTheme()));
                 privateLabel.setTextColor(getResources().getColor(android.R.color.black, getTheme()));
+                if (isOwner) {
+                    collaboratorsContainer.setVisibility(View.VISIBLE);
+                }
             } else {
                 privateLabel.setTextColor(getResources().getColor(R.color.green, getTheme()));
                 publicLabel.setTextColor(getResources().getColor(android.R.color.black, getTheme()));
+                collaboratorsContainer.setVisibility(View.GONE);
             }
         });
+    }
+    
+    private void setupCollaborators() {
+        btnAddCollaborator.setOnClickListener(v -> showAddCollaboratorDialog());
+        collaboratorsContainer.setVisibility(View.GONE);
     }
 
     // ──────────────── Firebase load ────────────────
 
     private void loadRecipeFromFirebase() {
-        String uid = myAuth.getCurrentUser() != null ? myAuth.getCurrentUser().getUid() : null;
-        if (uid == null) {
-            Toast.makeText(this, "Not signed in", Toast.LENGTH_SHORT).show();
+        if (ownerUid == null) {
+            Toast.makeText(this, "Owner UID not found", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
         DatabaseReference ref = database.getReference("users")
-                .child(uid).child("recipes").child(recipeId);
+                .child(ownerUid).child("recipes").child(recipeId);
 
         ref.get().addOnSuccessListener(snapshot -> {
             originalRecipe = snapshot.getValue(Recipe.class);
@@ -269,6 +303,20 @@ public class EditRecipeActivity extends AppCompatActivity {
 
         // Set visibility switch
         recipeVisibilitySwitch.setChecked(r.isPublic);
+        
+        // If recipe is public, lock the switch
+        if (r.isPublic) {
+            recipeVisibilitySwitch.setEnabled(false);
+            recipeVisibilitySwitch.setClickable(false);
+            publicLabel.setTextColor(getResources().getColor(R.color.green, getTheme()));
+            privateLabel.setTextColor(getResources().getColor(android.R.color.black, getTheme()));
+            
+            // Show collaborators section (viewable for collaborators, editable for owner)
+            collaboratorsContainer.setVisibility(View.VISIBLE);
+            
+            // Only owner can add collaborators
+            btnAddCollaborator.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+        }
 
         // Populate tags
         tagChipGroup.removeAllViews();
@@ -299,6 +347,15 @@ public class EditRecipeActivity extends AppCompatActivity {
             }
         }
         ingredientAdapter.notifyDataSetChanged();
+
+        collaboratorChipGroup.removeAllViews();
+        collaboratorUidList.clear();
+        if (r.collaborators != null && !r.collaborators.isEmpty()) {
+            for (String collaboratorUid : r.collaborators) {
+                collaboratorUidList.add(collaboratorUid);
+                loadCollaboratorName(collaboratorUid);
+            }
+        }
     }
 
     // ──────────────── Firebase update ────────────────
@@ -359,9 +416,8 @@ public class EditRecipeActivity extends AppCompatActivity {
         List<Ingredient> ingredients = new ArrayList<>(ingredientList);
         boolean isPublic = recipeVisibilitySwitch.isChecked();
 
-        String uid = myAuth.getCurrentUser().getUid();
         DatabaseReference ref = database.getReference("users")
-                .child(uid).child("recipes").child(recipeId);
+                .child(ownerUid).child("recipes").child(recipeId);
 
         // Build full updated recipe object (write all fields, not just diffs)
         // This is simpler, safer, and avoids partial-update bugs
@@ -381,6 +437,13 @@ public class EditRecipeActivity extends AppCompatActivity {
         updates.put("cookware", cookwareList);
         updates.put("instructions", instructions);
         updates.put("ingredients", ingredients);
+
+        if (originalRecipe != null) {
+            updates.put("ownerId", originalRecipe.ownerId);
+            if (originalRecipe.isPublic) {
+                updates.put("collaborators", collaboratorUidList);
+            }
+        }
 
         ref.updateChildren(updates)
                 .addOnSuccessListener(unused -> {
@@ -650,6 +713,116 @@ public class EditRecipeActivity extends AppCompatActivity {
     }
 
     // ──────────────── Navigation ────────────────
+    private void loadFriendsList() {
+        if (myAuth.getCurrentUser() == null) {
+            return;
+        }
+
+        String uid = myAuth.getCurrentUser().getUid();
+        DatabaseReference friendsRef = database.getReference("users")
+                .child(uid)
+                .child("friends");
+
+        friendsRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()) {
+                friendsList.clear();
+
+                for (DataSnapshot friendIdSnapshot : task.getResult().getChildren()) {
+                    String friendId = friendIdSnapshot.getKey();
+
+                    // Fetch the friend's details
+                    if (friendId != null) {
+                        DatabaseReference friendRef = database.getReference("users").child(friendId);
+
+                        friendRef.get().addOnCompleteListener(friendTask -> {
+                            if (friendTask.isSuccessful() && friendTask.getResult().exists()) {
+                                String friendName = friendTask.getResult().child("name").getValue(String.class);
+                                String friendEmail = friendTask.getResult().child("email").getValue(String.class);
+
+                                if (friendName != null) {
+                                    User friend = new User(friendId, friendName, friendEmail);
+                                    friendsList.add(friend);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    }
+    
+    private void showAddCollaboratorDialog() {
+        if (!isOwner) {
+            Toast.makeText(this, "Only the owner can add collaborators", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        if (friendsList.isEmpty()) {
+            Toast.makeText(this, "No friends available. Add friends first.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select Collaborator");
+        
+        String[] friendNames = new String[friendsList.size()];
+        for (int i = 0; i < friendsList.size(); i++) {
+            friendNames[i] = friendsList.get(i).name;
+        }
+
+        builder.setItems(friendNames, (dialog, which) -> {
+            User selectedFriend = friendsList.get(which);
+            
+            // Check if already added
+            if (collaboratorUidList.contains(selectedFriend.uid)) {
+                Toast.makeText(this, "Collaborator already added", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            addCollaboratorChip(selectedFriend, true);
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+        builder.show();
+    }
+    
+    private void addCollaboratorChip(User friend, boolean canRemove) {
+        Chip chip = new Chip(this);
+        chip.setText(friend.name);
+        chip.setCheckable(false);
+        chip.setClickable(false);
+        
+        // Only owner can remove collaborators
+        if (canRemove && isOwner) {
+            chip.setCloseIconVisible(true);
+            chip.setOnCloseIconClickListener(v -> {
+                collaboratorChipGroup.removeView(chip);
+                collaboratorUidList.remove(friend.uid);
+            });
+        } else {
+            chip.setCloseIconVisible(false);
+        }
+
+        collaboratorChipGroup.addView(chip);
+        if (!collaboratorUidList.contains(friend.uid)) {
+            collaboratorUidList.add(friend.uid);
+        }
+    }
+    
+    private void loadCollaboratorName(String collaboratorUid) {
+        DatabaseReference userRef = database.getReference("users").child(collaboratorUid);
+        userRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()) {
+                String name = task.getResult().child("name").getValue(String.class);
+                String email = task.getResult().child("email").getValue(String.class);
+                if (name != null) {
+                    User collaborator = new User(collaboratorUid, name, email);
+                    // Add chip without close icon for non-owners or with close icon for owners
+                    addCollaboratorChip(collaborator, false);
+                }
+            }
+        });
+    }
 
     public void goBack(View view) {
         finish();

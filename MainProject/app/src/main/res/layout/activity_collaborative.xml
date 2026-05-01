@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Recipes.ShareRecipeActivity">
+    tools:context=".Recipes.CollaborativeActivity">
 
     <LinearLayout
         android:orientation="vertical"
@@ -36,7 +36,7 @@
                 android:layout_height="55dp"
                 android:fontFamily="@font/roboto"
                 android:layout_gravity="center"
-                android:text="Share Recipe"
+                android:text="Collaborative Recipes"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="#FFFF"
@@ -52,7 +52,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Select friends to share with:"
+                android:text="View Collaborative Recipes"
                 android:textSize="18sp"
                 android:layout_marginBottom="8dp"/>
 
@@ -64,19 +64,11 @@
             android:layout_weight="1"
             android:paddingStart="16dp">
             <LinearLayout
-                android:id="@+id/friendSelectionContainer"
+                android:id="@+id/collabRecipesContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
         </ScrollView>
-
-        <Button
-            android:id="@+id/btnShareRecipe"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Share Recipe"
-            android:layout_margin="16dp"
-            android:backgroundTint="#73AF6F"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
