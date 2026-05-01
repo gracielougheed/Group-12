@@ -3,6 +3,10 @@ package com.example.mainproject;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,17 +70,26 @@ public class MealPlannerFragment extends Fragment {
             startActivity(intent);
         });
 
-        // Long press to delete a plan
+        // Long press to show options: Delete or Duplicate
         listView.setOnItemLongClickListener((parent, v, position, id) -> {
             String key = planKeyList.get(position);
             new AlertDialog.Builder(requireContext())
-                    .setTitle("Delete Meal Plan")
-                    .setMessage("Are you sure?")
-                    .setPositiveButton("Yes", (d, w) -> {
-                        database.getReference("users").child(uid)
-                                .child("mealplans").child(key).removeValue();
+                    .setTitle("Meal Plan Options")
+                    .setItems(new String[]{"Duplicate", "Delete"}, (d, which) -> {
+                        if (which == 0) {
+                            duplicatePlan(key);
+                        } else {
+                            new AlertDialog.Builder(requireContext())
+                                    .setTitle("Delete Meal Plan")
+                                    .setMessage("Are you sure?")
+                                    .setPositiveButton("Yes", (d2, w) -> {
+                                        database.getReference("users").child(uid)
+                                                .child("mealplans").child(key).removeValue();
+                                    })
+                                    .setNegativeButton("No", null)
+                                    .show();
+                        }
                     })
-                    .setNegativeButton("No", null)
                     .show();
             return true;
         });
@@ -104,6 +117,45 @@ public class MealPlannerFragment extends Fragment {
         });
 
         return view;
+    }
+
+    /**
+     * Copies an existing meal plan and all its meals to a new plan with "(Copy)" in the name.
+     */
+    private void duplicatePlan(String originalKey) {
+        DatabaseReference originalRef = database.getReference("users").child(uid)
+                .child("mealplans").child(originalKey);
+
+        originalRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                String name = snapshot.child("name").getValue(String.class);
+                String startDate = snapshot.child("startDate").getValue(String.class);
+                String endDate = snapshot.child("endDate").getValue(String.class);
+
+                // Create a copy with all the same data
+                DatabaseReference plansRef = database.getReference("users").child(uid).child("mealplans");
+                DatabaseReference newPlan = plansRef.push();
+                newPlan.child("name").setValue(name + " (Copy)");
+                newPlan.child("startDate").setValue(startDate);
+                newPlan.child("endDate").setValue(endDate);
+
+                // Copy all meals too
+                for (DataSnapshot meal : snapshot.child("meals").getChildren()) {
+                    DatabaseReference newMeal = newPlan.child("meals").push();
+                    newMeal.child("date").setValue(meal.child("date").getValue(String.class));
+                    newMeal.child("mealType").setValue(meal.child("mealType").getValue(String.class));
+                    newMeal.child("recipeId").setValue(meal.child("recipeId").getValue(String.class));
+                    newMeal.child("recipeTitle").setValue(meal.child("recipeTitle").getValue(String.class));
+                }
+
+                Toast.makeText(requireContext(), "Meal plan duplicated", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+            }
+        });
     }
 
     /**
@@ -151,6 +203,20 @@ public class MealPlannerFragment extends Fragment {
 
             String startDate = startDateBtn.getText().toString();
             String endDate = endDateBtn.getText().toString();
+
+            // Validate that end date is not before start date
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yy", Locale.getDefault());
+                Date start = sdf.parse(startDate);
+                Date end = sdf.parse(endDate);
+                if (end.before(start)) {
+                    Toast.makeText(requireContext(), "End date cannot be before start date", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } catch (Exception e) {
+                Toast.makeText(requireContext(), "Invalid date format", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             // Save the new meal plan to Firebase
             DatabaseReference plansRef = database.getReference("users").child(uid).child("mealplans");

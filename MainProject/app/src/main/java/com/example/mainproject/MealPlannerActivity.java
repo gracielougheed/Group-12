@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -67,6 +68,9 @@ public class MealPlannerActivity extends AppCompatActivity {
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
         btnAddMeal.setOnClickListener(v -> showAddMealDialog());
 
+        // Tap the title to edit the plan name and dates
+        titleView.setOnClickListener(v -> showEditPlanDialog());
+
         // Listen for real-time updates to this meal plan
         DatabaseReference planRef = database.getReference("users").child(uid)
                 .child("mealplans").child(mealPlanId);
@@ -119,12 +123,41 @@ public class MealPlannerActivity extends AppCompatActivity {
                 String dateStr = dateFormat.format(cal.getTime());
                 String displayDate = displayFormat.format(cal.getTime());
 
-                // Date header
+                // Date header — tap to clear all meals for this date
                 TextView header = new TextView(this);
                 header.setText(displayDate);
                 header.setTextSize(18);
                 header.setTypeface(null, Typeface.BOLD);
                 header.setPadding(0, 24, 0, 8);
+                header.setBackgroundResource(android.R.drawable.list_selector_background);
+                header.setClickable(true);
+                header.setFocusable(true);
+
+                String dateToDelete = dateStr;
+                header.setOnClickListener(v -> {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Clear " + displayDate)
+                            .setMessage("Remove all meals for this date?")
+                            .setPositiveButton("Yes", (d, w) -> {
+                                DatabaseReference mealsRef = database.getReference("users").child(uid)
+                                        .child("mealplans").child(mealPlanId).child("meals");
+                                mealsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot snapshot) {
+                                        for (DataSnapshot meal : snapshot.getChildren()) {
+                                            if (dateToDelete.equals(meal.child("date").getValue(String.class))) {
+                                                meal.getRef().removeValue();
+                                            }
+                                        }
+                                    }
+                                    @Override
+                                    public void onCancelled(DatabaseError error) {}
+                                });
+                            })
+                            .setNegativeButton("No", null)
+                            .show();
+                });
+
                 mealsContainer.addView(header);
 
                 // Meals for this date
@@ -188,6 +221,77 @@ public class MealPlannerActivity extends AppCompatActivity {
             case "Snack": return 4;
             default: return 99;
         }
+    }
+
+    /**
+     * Shows a dialog to edit the plan name and date range.
+     * Reuses the same layout as creating a plan, with fields pre-filled.
+     */
+    private void showEditPlanDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_create_meal_plan, null);
+        EditText nameInput = dialogView.findViewById(R.id.input_plan_name);
+        Button startDateBtn = dialogView.findViewById(R.id.button_start_date);
+        Button endDateBtn = dialogView.findViewById(R.id.button_end_date);
+
+        // Pre-fill with current values
+        TextView titleView = findViewById(R.id.planTitle);
+        nameInput.setText(titleView.getText().toString());
+        startDateBtn.setText(planStartDate);
+        endDateBtn.setText(planEndDate);
+
+        startDateBtn.setOnClickListener(v -> {
+            Calendar cal = Calendar.getInstance();
+            new DatePickerDialog(this, (picker, year, month, day) -> {
+                startDateBtn.setText(String.format("%02d-%02d-%02d", day, month + 1, year % 100));
+            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
+        });
+
+        endDateBtn.setOnClickListener(v -> {
+            Calendar cal = Calendar.getInstance();
+            new DatePickerDialog(this, (picker, year, month, day) -> {
+                endDateBtn.setText(String.format("%02d-%02d-%02d", day, month + 1, year % 100));
+            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
+        });
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Edit Meal Plan")
+                .setView(dialogView)
+                .setPositiveButton("Save", null)
+                .setNegativeButton("Cancel", null)
+                .show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String name = nameInput.getText().toString().trim();
+            if (name.isEmpty()) {
+                nameInput.setError("Required");
+                return;
+            }
+
+            String startDate = startDateBtn.getText().toString();
+            String endDate = endDateBtn.getText().toString();
+
+            // Validate that end date is not before start date
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yy", Locale.getDefault());
+                Date start = sdf.parse(startDate);
+                Date end = sdf.parse(endDate);
+                if (end.before(start)) {
+                    Toast.makeText(this, "End date cannot be before start date", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            DatabaseReference planRef = database.getReference("users").child(uid)
+                    .child("mealplans").child(mealPlanId);
+            planRef.child("name").setValue(name);
+            planRef.child("startDate").setValue(startDate);
+            planRef.child("endDate").setValue(endDate);
+            dialog.dismiss();
+            Toast.makeText(this, "Meal plan updated", Toast.LENGTH_SHORT).show();
+        });
     }
 
     /**

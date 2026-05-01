@@ -18,6 +18,7 @@ public class Recipe {
     public List<Ingredient> ingredients;
     public List<String> cookware;
     public List<String> instructions;
+    public String notes;
     public List<String> collaborators;
     public String ownerId;
 
