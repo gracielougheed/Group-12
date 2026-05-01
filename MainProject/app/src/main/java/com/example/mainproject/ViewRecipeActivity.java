@@ -365,12 +365,6 @@ public class ViewRecipeActivity extends AppCompatActivity {
         Button btnReset = cardView.findViewById(R.id.btnReset);
         ImageView btnClose = cardView.findViewById(R.id.btnCloseTimer);
 
-        // Adjustment buttons
-        Button btnMinus10s = cardView.findViewById(R.id.btnMinus10s);
-        Button btnPlus10s = cardView.findViewById(R.id.btnPlus10s);
-        Button btnMinus1m = cardView.findViewById(R.id.btnMinus1m);
-        Button btnPlus1m = cardView.findViewById(R.id.btnPlus1m);
-
         tvTitle.setText(label);
         tvTime.setText(formatTime(durationMillis));
 
@@ -385,27 +379,6 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
         // Make draggable
         makeTimerDraggable(cardView);
-
-        // +/- button logic
-        btnMinus10s.setOnClickListener(v -> {
-            card.timer.remainingMillis = Math.max(0, card.timer.remainingMillis - 10_000L);
-            tvTime.setText(formatTime(card.timer.remainingMillis));
-        });
-
-        btnPlus10s.setOnClickListener(v -> {
-            card.timer.remainingMillis += 10_000L;
-            tvTime.setText(formatTime(card.timer.remainingMillis));
-        });
-
-        btnMinus1m.setOnClickListener(v -> {
-            card.timer.remainingMillis = Math.max(0, card.timer.remainingMillis - 60_000L);
-            tvTime.setText(formatTime(card.timer.remainingMillis));
-        });
-
-        btnPlus1m.setOnClickListener(v -> {
-            card.timer.remainingMillis += 60_000L;
-            tvTime.setText(formatTime(card.timer.remainingMillis));
-        });
 
         // Start/Pause logic
         btnStartPause.setOnClickListener(v -> {
