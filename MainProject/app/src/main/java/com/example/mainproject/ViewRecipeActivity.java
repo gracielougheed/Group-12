@@ -35,7 +35,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -238,7 +240,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
                 tv.setTextSize(14f);
                 tv.setTextColor(Color.BLACK);
 
-                ParsedTime pt = parseTimeFromText(step);
+                ParsedTime pt = parseTimesFromText(step);
                 if (pt != null) {
                     SpannableString spannable = new SpannableString(fullText);
 
@@ -488,82 +490,148 @@ public class ViewRecipeActivity extends AppCompatActivity {
         int endIndex;
     }
 
-    private ParsedTime parseTimeFromText(String text) {
-        // Normalize
+    private List<ParsedTime> parseTimesFromText(String text) {
         String lower = text.toLowerCase(Locale.US);
+        List<ParsedTime> results = new ArrayList<>();
 
-        // Patterns:
-        // 1) hours + minutes: "1 hour 30 minutes", "1h 30m", "1 hr 30 min"
-        Pattern hoursMinutes = Pattern.compile(
-                "(\\d+)\\s*(h|hr|hour|hours)\\s*(\\d+)\\s*(m|min|mins|minute|minutes)"
-        );
+        // Convert unicode fractions to numeric
+        lower = lower.replace("½", "1/2")
+                .replace("¼", "1/4")
+                .replace("¾", "3/4");
 
-        // 2) hours only: "1 hour", "2h", "2 hr"
-        Pattern hoursOnly = Pattern.compile(
-                "(\\d+)\\s*(h|hr|hour|hours)"
-        );
+        // FRACTION pattern (1/2, 3/2, 1 1/2)
+        String fraction = "(?:\\d+\\s+)?\\d+/\\d+";
 
-        // 3) minutes only (including ranges): "10-12 minutes", "10–12 min", "10m"
-        Pattern minutesRange = Pattern.compile(
-                "(\\d+)\\s*[-–]\\s*\\d+\\s*(m|min|mins|minute|minutes)"
-        );
-        Pattern minutesOnly = Pattern.compile(
-                "(\\d+)\\s*(m|min|mins|minute|minutes)"
-        );
+        // DECIMAL pattern (1.5)
+        String decimal = "\\d+\\.\\d+";
 
+        // INTEGER pattern (1, 20)
+        String integer = "\\d+";
+
+        // Combined number pattern
+        String number = "(" + fraction + "|" + decimal + "|" + integer + ")";
+
+        // Units
+        String hours = "(hour|hours|hr|hrs)";
+        String minutes = "(minute|minutes|min|mins)";
+        String seconds = "(second|seconds)";
+
+        // Patterns
+        Pattern hoursMinutes = Pattern.compile(number + "\\s+" + hours + "\\s+(?:and\\s+)?"
+                + number + "\\s+" + minutes + "\\b");
+
+        Pattern minutesSeconds = Pattern.compile(number + "\\s+" + minutes + "\\s+(?:and\\s+)?"
+                + number + "\\s+" + seconds + "\\b");
+
+        Pattern hoursSeconds = Pattern.compile(number + "\\s+" + hours + "\\s+(?:and\\s+)?"
+                + number + "\\s+" + seconds + "\\b");
+
+        Pattern hoursOnly = Pattern.compile(number + "\\s+" + hours + "\\b");
+
+        Pattern minutesOnly = Pattern.compile(number + "\\s+" + minutes + "\\b");
+
+        Pattern secondsOnly = Pattern.compile(number + "\\s+" + seconds + "\\b");
+
+        // Helper to convert number string to double
+        java.util.function.Function<String, Double> parseNum = (s) -> {
+            if (s.contains("/")) {
+                if (s.contains(" ")) {
+                    // mixed fraction: "1 1/2"
+                    String[] parts = s.split(" ");
+                    double whole = Double.parseDouble(parts[0]);
+                    String[] frac = parts[1].split("/");
+                    return whole + (Double.parseDouble(frac[0]) / Double.parseDouble(frac[1]));
+                } else {
+                    // simple fraction: "1/2"
+                    String[] frac = s.split("/");
+                    return Double.parseDouble(frac[0]) / Double.parseDouble(frac[1]);
+                }
+            }
+            return Double.parseDouble(s);
+        };
+
+        // Apply patterns (each may match multiple times)
         Matcher m;
 
         // hours + minutes
         m = hoursMinutes.matcher(lower);
-        if (m.find()) {
-            int h = Integer.parseInt(m.group(1));
-            int min = Integer.parseInt(m.group(3));
-            long millis = (h * 60L + min) * 60_000L;
+        while (m.find()) {
+            double h = parseNum.apply(m.group(1));
+            double min = parseNum.apply(m.group(3));
+            long millis = (long)((h * 60 + min) * 60_000L);
             ParsedTime pt = new ParsedTime();
             pt.millis = millis;
             pt.startIndex = m.start();
             pt.endIndex = m.end();
-            return pt;
+            results.add(pt);
+        }
+
+        // minutes + seconds
+        m = minutesSeconds.matcher(lower);
+        while (m.find()) {
+            double min = parseNum.apply(m.group(1));
+            double sec = parseNum.apply(m.group(3));
+            long millis = (long)(min * 60_000L + sec * 1000L);
+            ParsedTime pt = new ParsedTime();
+            pt.millis = millis;
+            pt.startIndex = m.start();
+            pt.endIndex = m.end();
+            results.add(pt);
+        }
+
+        // hours + seconds
+        m = hoursSeconds.matcher(lower);
+        while (m.find()) {
+            double h = parseNum.apply(m.group(1));
+            double sec = parseNum.apply(m.group(3));
+            long millis = (long)(h * 60L * 60_000L + sec * 1000L);
+            ParsedTime pt = new ParsedTime();
+            pt.millis = millis;
+            pt.startIndex = m.start();
+            pt.endIndex = m.end();
+            results.add(pt);
         }
 
         // hours only
         m = hoursOnly.matcher(lower);
-        if (m.find()) {
-            int h = Integer.parseInt(m.group(1));
-            long millis = h * 60L * 60_000L;
+        while (m.find()) {
+            double h = parseNum.apply(m.group(1));
+            long millis = (long)(h * 60L * 60_000L);
             ParsedTime pt = new ParsedTime();
             pt.millis = millis;
             pt.startIndex = m.start();
             pt.endIndex = m.end();
-            return pt;
-        }
-
-        // minutes range
-        m = minutesRange.matcher(lower);
-        if (m.find()) {
-            int min = Integer.parseInt(m.group(1)); // first number
-            long millis = min * 60_000L;
-            ParsedTime pt = new ParsedTime();
-            pt.millis = millis;
-            pt.startIndex = m.start();
-            pt.endIndex = m.end();
-            return pt;
+            results.add(pt);
         }
 
         // minutes only
         m = minutesOnly.matcher(lower);
-        if (m.find()) {
-            int min = Integer.parseInt(m.group(1));
-            long millis = min * 60_000L;
+        while (m.find()) {
+            double min = parseNum.apply(m.group(1));
+            long millis = (long)(min * 60_000L);
             ParsedTime pt = new ParsedTime();
             pt.millis = millis;
             pt.startIndex = m.start();
             pt.endIndex = m.end();
-            return pt;
+            results.add(pt);
         }
 
-        return null;
+        // seconds only
+        m = secondsOnly.matcher(lower);
+        while (m.find()) {
+            double sec = parseNum.apply(m.group(1));
+            long millis = (long)(sec * 1000L);
+            ParsedTime pt = new ParsedTime();
+            pt.millis = millis;
+            pt.startIndex = m.start();
+            pt.endIndex = m.end();
+            results.add(pt);
+        }
+
+        return results;
     }
+
+
 
 
     private void confirmDelete() {
