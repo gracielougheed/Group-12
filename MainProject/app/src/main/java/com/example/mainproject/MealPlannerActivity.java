@@ -267,11 +267,28 @@ public class MealPlannerActivity extends AppCompatActivity {
                 return;
             }
 
+            String startDate = startDateBtn.getText().toString();
+            String endDate = endDateBtn.getText().toString();
+
+            // Validate that end date is not before start date
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yy", Locale.getDefault());
+                Date start = sdf.parse(startDate);
+                Date end = sdf.parse(endDate);
+                if (end.before(start)) {
+                    Toast.makeText(this, "End date cannot be before start date", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             DatabaseReference planRef = database.getReference("users").child(uid)
                     .child("mealplans").child(mealPlanId);
             planRef.child("name").setValue(name);
-            planRef.child("startDate").setValue(startDateBtn.getText().toString());
-            planRef.child("endDate").setValue(endDateBtn.getText().toString());
+            planRef.child("startDate").setValue(startDate);
+            planRef.child("endDate").setValue(endDate);
             dialog.dismiss();
             Toast.makeText(this, "Meal plan updated", Toast.LENGTH_SHORT).show();
         });
