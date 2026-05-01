@@ -60,7 +60,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
     private TextView tvTitle;
 
     // Info row
-    private TextView tvCategory, tvPrepTime, tvCookTime, tvServings, tvDifficulty, tvVisibility;
+    private TextView tvDescription, tvCategory, tvPrepTime, tvCookTime, tvServings, tvDifficulty, tvVisibility;
 
     // Sections
     private TextView tvTags, tvCookware;
@@ -140,6 +140,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
     private void bindViews() {
         tvTitle       = findViewById(R.id.tvTitle);
+        tvDescription = findViewById(R.id.tvDescription);
         tvCategory    = findViewById(R.id.tvCategory);
         tvPrepTime    = findViewById(R.id.tvPrepTime);
         tvCookTime    = findViewById(R.id.tvCookTime);
@@ -185,6 +186,12 @@ public class ViewRecipeActivity extends AppCompatActivity {
     private void populateUI(Recipe r) {
         tvTitle.setText(r.title != null ? r.title : "");
         tvCategory.setText(r.category != null ? r.category : "");
+        // Description
+        if (r.description != null && !r.description.trim().isEmpty()) {
+            tvDescription.setText(r.description);
+        } else {
+            tvDescription.setText("No description provided.");
+        }
 
         tvPrepTime.setText(r.prepTimeValue + " " + (r.prepTimeUnit != null ? r.prepTimeUnit : ""));
         tvPrepTime.setTextColor(Color.parseColor("#007E6E"));
