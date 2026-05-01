@@ -233,53 +233,10 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
 
         // Instructions
-// Instructions
         layoutInstructions.removeAllViews();
         if (r.instructions != null) {
-            for (int i = 0; i < recipe.instructions.size(); i++) {
-
-                final int index = i;   // <-- REQUIRED FIX
-
-                String step = recipe.instructions.get(index);
-                String fullText = (index + 1) + ". " + step;
-
-                TextView tv = new TextView(this);
-                tv.setTextSize(14f);
-                tv.setTextColor(Color.BLACK);
-
-                ParsedTime pt = parseTimeFromText(step);
-                if (pt != null) {
-                    SpannableString spannable = new SpannableString(fullText);
-
-                    int offset = (index + 1 + ". ").length();
-                    int start = offset + pt.startIndex;
-                    int end = offset + pt.endIndex;
-
-                    ClickableSpan span = new ClickableSpan() {
-                        @Override
-                        public void onClick(@NonNull View widget) {
-                            showOrAddTimer(
-                                    "step_" + index,          // use index, not i
-                                    "Step " + (index + 1),
-                                    pt.millis
-                            );
-                        }
-
-                        @Override
-                        public void updateDrawState(@NonNull TextPaint ds) {
-                            super.updateDrawState(ds);
-                            ds.setColor(Color.parseColor("#007E6E"));
-                            ds.setUnderlineText(true);
-                        }
-                    };
-
-                    spannable.setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    tv.setText(spannable);
-                    tv.setMovementMethod(LinkMovementMethod.getInstance());
-                } else {
-                    tv.setText(fullText);
-                }
-
+            for (int i = 0; i < r.instructions.size(); i++) {
+                TextView tv = makeBodyTextView((i + 1) + ". " + r.instructions.get(i));
                 layoutInstructions.addView(tv);
             }
         }
@@ -514,83 +471,6 @@ public class ViewRecipeActivity extends AppCompatActivity {
         long millis;
         int startIndex;
         int endIndex;
-    }
-
-    private ParsedTime parseTimeFromText(String text) {
-        // Normalize
-        String lower = text.toLowerCase(Locale.US);
-
-        // Patterns:
-        // 1) hours + minutes: "1 hour 30 minutes", "1h 30m", "1 hr 30 min"
-        Pattern hoursMinutes = Pattern.compile(
-                "(\\d+)\\s*(h|hr|hour|hours)\\s*(\\d+)\\s*(m|min|mins|minute|minutes)"
-        );
-
-        // 2) hours only: "1 hour", "2h", "2 hr"
-        Pattern hoursOnly = Pattern.compile(
-                "(\\d+)\\s*(h|hr|hour|hours)"
-        );
-
-        // 3) minutes only (including ranges): "10-12 minutes", "10–12 min", "10m"
-        Pattern minutesRange = Pattern.compile(
-                "(\\d+)\\s*[-–]\\s*\\d+\\s*(m|min|mins|minute|minutes)"
-        );
-        Pattern minutesOnly = Pattern.compile(
-                "(\\d+)\\s*(m|min|mins|minute|minutes)"
-        );
-
-        Matcher m;
-
-        // hours + minutes
-        m = hoursMinutes.matcher(lower);
-        if (m.find()) {
-            int h = Integer.parseInt(m.group(1));
-            int min = Integer.parseInt(m.group(3));
-            long millis = (h * 60L + min) * 60_000L;
-            ParsedTime pt = new ParsedTime();
-            pt.millis = millis;
-            pt.startIndex = m.start();
-            pt.endIndex = m.end();
-            return pt;
-        }
-
-        // hours only
-        m = hoursOnly.matcher(lower);
-        if (m.find()) {
-            int h = Integer.parseInt(m.group(1));
-            long millis = h * 60L * 60_000L;
-            ParsedTime pt = new ParsedTime();
-            pt.millis = millis;
-            pt.startIndex = m.start();
-            pt.endIndex = m.end();
-            return pt;
-        }
-
-        // minutes range
-        m = minutesRange.matcher(lower);
-        if (m.find()) {
-            int min = Integer.parseInt(m.group(1)); // first number
-            long millis = min * 60_000L;
-            ParsedTime pt = new ParsedTime();
-            pt.millis = millis;
-            pt.startIndex = m.start();
-            pt.endIndex = m.end();
-            return pt;
-        }
-
-        // minutes only
-        m = minutesOnly.matcher(lower);
-        if (m.find()) {
-            int min = Integer.parseInt(m.group(1));
-            long millis = min * 60_000L;
-            ParsedTime pt = new ParsedTime();
-            pt.millis = millis;
-            pt.startIndex = m.start();
-            pt.endIndex = m.end();
-            return pt;
-        }
-
-        return null;
     }
 
 
