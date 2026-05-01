@@ -439,6 +439,17 @@ public class ViewRecipeActivity extends AppCompatActivity {
                         float newX = event.getRawX() + dX;
                         float newY = event.getRawY() + dY;
 
+                        int parentWidth = ((View) v.getParent()).getWidth();
+                        int parentHeight = ((View) v.getParent()).getHeight();
+                        int viewWidth = v.getWidth();
+                        int viewHeight = v.getHeight();
+
+                        //Keep X and Y within screen bounds
+                        if (newX < 0) newX = 0;
+                        if (newX + viewWidth > parentWidth) newX = parentWidth - viewWidth;
+                        if (newY < 0) newY = 0;
+                        if (newY + viewHeight > parentHeight) newY = parentHeight - viewHeight;
+
                         // Optional: clamp within screen bounds
                         v.setX(newX);
                         v.setY(newY);
