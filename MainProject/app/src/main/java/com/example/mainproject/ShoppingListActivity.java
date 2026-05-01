@@ -1,5 +1,6 @@
 package com.example.mainproject;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -132,5 +133,10 @@ public class ShoppingListActivity extends AppCompatActivity {
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) return str;
         return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    public void goBack(View view) {
+        startActivity(new Intent(this, HomeActivity.class));
+        finish();
     }
 }

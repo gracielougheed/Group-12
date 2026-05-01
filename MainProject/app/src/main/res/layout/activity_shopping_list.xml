@@ -2,48 +2,80 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Generate Shopping List"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select recipes:"
-        android:textSize="18sp"
-        android:layout_marginBottom="8dp"/>
-
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-        <LinearLayout
-            android:id="@+id/recipeSelectionContainer"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="#FFFFFF">
+
+        <!--Container for Header-->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:orientation="horizontal"
+            android:background="#007E6E">
+
+            <ImageView
+                android:id="@+id/backArrow"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:layout_gravity="start"
+                android:clickable="true"
+                android:contentDescription="Back"
+                android:padding="8dp"
+                android:src="@drawable/ic_arrow_back_24"
+                android:onClick="goBack"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="55dp"
+                android:fontFamily="@font/roboto"
+                android:layout_gravity="center"
+                android:text="Generate Shopping List"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#FFFF"
+                android:layout_marginTop="10dp"/>
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select recipes:"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp"
+            android:paddingLeft="16dp"/>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+            <LinearLayout
+                android:id="@+id/recipeSelectionContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingLeft="16dp"/>
+        </ScrollView>
+
+        <Button
+            android:id="@+id/btnGenerateList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </ScrollView>
+            android:text="Generate"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#007E6E"/>
 
-    <Button
-        android:id="@+id/btnGenerateList"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Generate"
-        android:layout_marginTop="16dp"/>
-
-    <TextView
-        android:id="@+id/shoppingListResult"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:paddingTop="16dp"
-        android:textIsSelectable="true"/>
+        <TextView
+            android:id="@+id/shoppingListResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:paddingTop="16dp"
+            android:textIsSelectable="true"/>
+    </LinearLayout>
 
 </LinearLayout>
