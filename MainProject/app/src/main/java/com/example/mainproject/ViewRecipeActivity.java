@@ -3,6 +3,7 @@ package com.example.mainproject;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.SpannableString;
@@ -67,23 +68,10 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
     private ValueEventListener recipeListener;
     private DatabaseReference recipeRef;
-
-    // Overlay + floating view
     private FrameLayout timerOverlay;
-    private View timerView;
-    private TextView tvTimerTitle, tvTimerTime;
-    private Button btnStartPause, btnReset;
-    private LinearLayout timerTabsContainer;
-    private ImageView btnCloseTimer;
-
-    // Timer state
-    private final Map<String, RecipeTimer> timers = new LinkedHashMap<>();
-    private RecipeTimer currentTimer = null;
-    private CountDownTimer countDownTimer = null;
-    private boolean hasActiveTimer = false;
+    private final Map<String, TimerCard> activeTimerCards = new LinkedHashMap<>();
 
     private Recipe recipe;
-
 
     private static class RecipeTimer {
         String id;          // e.g. "prep", "cook", "step_3"
@@ -187,7 +175,13 @@ public class ViewRecipeActivity extends AppCompatActivity {
         tvCategory.setText(r.category != null ? r.category : "");
 
         tvPrepTime.setText(r.prepTimeValue + " " + (r.prepTimeUnit != null ? r.prepTimeUnit : ""));
+        tvPrepTime.setTextColor(Color.parseColor("#007E6E"));
+        tvPrepTime.setPaintFlags(tvPrepTime.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+
         tvCookTime.setText(r.cookTimeValue + " " + (r.cookTimeUnit != null ? r.cookTimeUnit : ""));
+        tvCookTime.setTextColor(Color.parseColor("#007E6E"));
+        tvCookTime.setPaintFlags(tvCookTime.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+
         tvServings.setText(String.valueOf(r.servingSize));
 
         // Difficulty stored as int 1-5 (or whatever your spinner maps to)
@@ -307,66 +301,70 @@ public class ViewRecipeActivity extends AppCompatActivity {
         // No finish() — user returns here; the realtime listener will refresh data automatically.
     }
 
-    private void showOrAddTimer(String id, String label, long durationMillis) {
-        // If timer already exists, just switch to it
-        RecipeTimer existing = timers.get(id);
-        if (existing == null) {
-            RecipeTimer timer = new RecipeTimer(id, label, durationMillis);
-            timers.put(id, timer);
-            hasActiveTimer = true;
-        }
-
-        if (timerView == null) {
-            inflateTimerView();
-        }
-
-        switchToTimer(id);
+    private class TimerCard {
+        View view;
+        RecipeTimer timer;
+        CountDownTimer countDown;
     }
 
-    private void inflateTimerView() {
-        LayoutInflater inflater = LayoutInflater.from(this);
-        timerView = inflater.inflate(R.layout.timer_floating_view, timerOverlay, false);
+    private void showOrAddTimer(String id, String label, long durationMillis) {
 
-        tvTimerTitle = timerView.findViewById(R.id.tvTimerTitle);
-        tvTimerTime = timerView.findViewById(R.id.tvTimerTime);
-        btnStartPause = timerView.findViewById(R.id.btnStartPause);
-        btnReset = timerView.findViewById(R.id.btnReset);
-        timerTabsContainer = timerView.findViewById(R.id.timerTabsContainer);
-        btnCloseTimer = timerView.findViewById(R.id.btnCloseTimer);
+        // If timer already exists, bring it to front
+        if (activeTimerCards.containsKey(id)) {
+            TimerCard existing = activeTimerCards.get(id);
+            existing.view.bringToFront();
+            return;
+        }
+
+        // Create new timer model
+        RecipeTimer timer = new RecipeTimer(id, label, durationMillis);
+
+        // Inflate a new floating card
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View cardView = inflater.inflate(R.layout.timer_floating_view, timerOverlay, false);
+
+        // Bind UI elements
+        TextView tvTitle = cardView.findViewById(R.id.tvTimerTitle);
+        TextView tvTime = cardView.findViewById(R.id.tvTimerTime);
+        Button btnStartPause = cardView.findViewById(R.id.btnStartPause);
+        Button btnReset = cardView.findViewById(R.id.btnReset);
+        ImageView btnClose = cardView.findViewById(R.id.btnCloseTimer);
+
+        tvTitle.setText(label);
+        tvTime.setText(formatTime(durationMillis));
+
+        // Create TimerCard object
+        TimerCard card = new TimerCard();
+        card.view = cardView;
+        card.timer = timer;
 
         // Add to overlay
-        timerOverlay.addView(timerView);
+        timerOverlay.addView(cardView);
+        activeTimerCards.put(id, card);
 
-        // Make it draggable
-        makeTimerDraggable(timerView);
+        // Make draggable
+        makeTimerDraggable(cardView);
 
-        // Close button
-        btnCloseTimer.setOnClickListener(v -> {
-            stopCurrentTimer();
-            timers.clear();
-            currentTimer = null;
-            hasActiveTimer = false;
-            timerOverlay.removeView(timerView);
-            timerView = null;
-        });
-
-        // Start/Pause
+        // Start/Pause logic
         btnStartPause.setOnClickListener(v -> {
-            if (currentTimer == null) return;
-            if (currentTimer.isRunning) {
-                pauseTimer();
+            if (timer.isRunning) {
+                pauseTimer(card, tvTime, btnStartPause);
             } else {
-                startTimer();
+                startTimer(card, tvTime, btnStartPause);
             }
         });
 
-        // Reset
+        // Reset logic
         btnReset.setOnClickListener(v -> {
-            if (currentTimer == null) return;
-            resetTimer();
+            resetTimer(card, tvTime, btnStartPause);
         });
 
-        rebuildTimerTabs();
+        // Close logic
+        btnClose.setOnClickListener(v -> {
+            stopTimer(card);
+            timerOverlay.removeView(cardView);
+            activeTimerCards.remove(id);
+        });
     }
 
     private void makeTimerDraggable(View view) {
@@ -393,98 +391,60 @@ public class ViewRecipeActivity extends AppCompatActivity {
         });
     }
 
-    private void rebuildTimerTabs() {
-        timerTabsContainer.removeAllViews();
-
-        for (RecipeTimer timer : timers.values()) {
-            TextView tab = new TextView(this);
-            tab.setText(timer.label);
-            tab.setPadding(16, 8, 16, 8);
-            tab.setTextSize(12f);
-            tab.setBackgroundResource(
-                    timer == currentTimer
-                            ? android.R.color.darker_gray
-                            : android.R.color.transparent
-            );
-            tab.setOnClickListener(v -> switchToTimer(timer.id));
-            timerTabsContainer.addView(tab);
-        }
-    }
-
-    private void switchToTimer(String id) {
-        RecipeTimer timer = timers.get(id);
-        if (timer == null) return;
-
-        // Stop any running CountDownTimer
-        stopCurrentTimer();
-
-        currentTimer = timer;
-        tvTimerTitle.setText(timer.label);
-        updateTimerDisplay(timer.remainingMillis);
-
-        // Update Start/Pause button text
-        btnStartPause.setText(timer.isRunning ? "Pause" : "Start");
-
-        rebuildTimerTabs();
-    }
-
-    private void startTimer() {
-        if (currentTimer == null) return;
-
-        currentTimer.isRunning = true;
+    private void startTimer(TimerCard card, TextView tvTime, Button btnStartPause) {
+        RecipeTimer timer = card.timer;
+        timer.isRunning = true;
         btnStartPause.setText("Pause");
 
-        countDownTimer = new CountDownTimer(currentTimer.remainingMillis, 1000) {
+        card.countDown = new CountDownTimer(timer.remainingMillis, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                currentTimer.remainingMillis = millisUntilFinished;
-                updateTimerDisplay(millisUntilFinished);
+                timer.remainingMillis = millisUntilFinished;
+                tvTime.setText(formatTime(millisUntilFinished));
             }
 
             @Override
             public void onFinish() {
-                currentTimer.remainingMillis = 0;
-                currentTimer.isRunning = false;
-                updateTimerDisplay(0);
+                timer.remainingMillis = 0;
+                timer.isRunning = false;
+                tvTime.setText(formatTime(0));
                 btnStartPause.setText("Start");
-                // Optional: sound/vibration/toast
             }
         }.start();
     }
 
-    private void pauseTimer() {
-        if (currentTimer == null) return;
-        currentTimer.isRunning = false;
+    private void pauseTimer(TimerCard card, TextView tvTime, Button btnStartPause) {
+        card.timer.isRunning = false;
         btnStartPause.setText("Start");
-        stopCurrentTimer();
+        stopTimer(card);
     }
 
-    private void resetTimer() {
-        if (currentTimer == null) return;
-        stopCurrentTimer();
-        currentTimer.remainingMillis = currentTimer.totalMillis;
-        currentTimer.isRunning = false;
-        updateTimerDisplay(currentTimer.remainingMillis);
+    private void resetTimer(TimerCard card, TextView tvTime, Button btnStartPause) {
+        stopTimer(card);
+        card.timer.remainingMillis = card.timer.totalMillis;
+        card.timer.isRunning = false;
+        tvTime.setText(formatTime(card.timer.remainingMillis));
         btnStartPause.setText("Start");
     }
 
-    private void stopCurrentTimer() {
-        if (countDownTimer != null) {
-            countDownTimer.cancel();
-            countDownTimer = null;
+    private void stopTimer(TimerCard card) {
+        if (card.countDown != null) {
+            card.countDown.cancel();
+            card.countDown = null;
         }
     }
 
-    private void updateTimerDisplay(long millis) {
+    private String formatTime(long millis) {
         long totalSeconds = millis / 1000;
         long minutes = totalSeconds / 60;
         long seconds = totalSeconds % 60;
-        tvTimerTime.setText(String.format("%02d:%02d", minutes, seconds));
+        return String.format(Locale.US, "%02d:%02d", minutes, seconds);
     }
+
 
     @Override
     public void onBackPressed() {
-        if (hasActiveTimer) {
+        if (!activeTimerCards.isEmpty()) {
             showLeaveTimerWarning();
         } else {
             super.onBackPressed();
@@ -493,7 +453,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
     @Override
     public boolean onSupportNavigateUp() {
-        if (hasActiveTimer) {
+        if (!activeTimerCards.isEmpty()) {
             showLeaveTimerWarning();
             return true;
         }
@@ -502,17 +462,25 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
     private void showLeaveTimerWarning() {
         new AlertDialog.Builder(this)
-                .setTitle("Active Timer")
-                .setMessage("You have an active timer. If you leave this screen, the timer will stop. Do you want to leave?")
+                .setTitle("Active Timers")
+                .setMessage("You have active timers. If you leave this screen, they will stop. Do you want to leave?")
                 .setPositiveButton("Leave", (d, w) -> {
-                    stopCurrentTimer();
-                    timers.clear();
-                    hasActiveTimer = false;
+
+                    // Stop all timers
+                    for (TimerCard card : activeTimerCards.values()) {
+                        stopTimer(card);
+                    }
+
+                    // Remove all floating cards
+                    timerOverlay.removeAllViews();
+                    activeTimerCards.clear();
+
                     super.onBackPressed();
                 })
                 .setNegativeButton("Stay", null)
                 .show();
     }
+
 
     private static class ParsedTime {
         long millis;
