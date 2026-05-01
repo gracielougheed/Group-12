@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,6 +46,10 @@ public class ViewRecipeActivity extends AppCompatActivity {
     private TextView tvTags, tvCookware;
     private LinearLayout layoutInstructions, layoutIngredients;
 
+    // Notes
+    private EditText notesEditText;
+    private Button saveNotesButton;
+
     // Buttons
     private Button btnEdit, btnShare, btnDelete;
 
@@ -73,6 +78,8 @@ public class ViewRecipeActivity extends AppCompatActivity {
         btnEdit.setVisibility(isOwner ? View.VISIBLE : View.GONE);
         btnShare.setVisibility(isOwner ? View.VISIBLE : View.GONE);
         btnDelete.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+        notesEditText.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+        saveNotesButton.setVisibility(isOwner ? View.VISIBLE : View.GONE);
 
         btnEdit.setOnClickListener(v -> openEditActivity());
         btnShare.setOnClickListener(v -> {
@@ -81,6 +88,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
             startActivity(intent);
         });
         btnDelete.setOnClickListener(v -> confirmDelete());
+        saveNotesButton.setOnClickListener(v -> saveNotes());
 
         // Load from Firebase
         recipeRef = FirebaseDatabase.getInstance(DB_URL)
@@ -101,6 +109,8 @@ public class ViewRecipeActivity extends AppCompatActivity {
         tvCookware    = findViewById(R.id.tvCookware);
         layoutInstructions = findViewById(R.id.layoutInstructions);
         layoutIngredients  = findViewById(R.id.layoutIngredients);
+        notesEditText      = findViewById(R.id.recipeNotes);
+        saveNotesButton    = findViewById(R.id.saveNotesButton);
         btnEdit   = findViewById(R.id.btnEdit);
         btnShare  = findViewById(R.id.btnShare);
         btnDelete = findViewById(R.id.btnDelete);
@@ -138,7 +148,6 @@ public class ViewRecipeActivity extends AppCompatActivity {
         tvCookTime.setText(r.cookTimeValue + " " + (r.cookTimeUnit != null ? r.cookTimeUnit : ""));
         tvServings.setText(String.valueOf(r.servingSize));
 
-        // Difficulty stored as int 1-5 (or whatever your spinner maps to)
         tvDifficulty.setText("Difficulty: " + r.difficultyLevel);
         tvVisibility.setText(r.isPublic ? "Public" : "Private");
 
@@ -174,6 +183,11 @@ public class ViewRecipeActivity extends AppCompatActivity {
                 layoutIngredients.addView(makeBodyTextView("• " + line));
             }
         }
+
+        // Notes
+        if (r.notes != null) {
+            notesEditText.setText(r.notes);
+        }
     }
 
     private TextView makeBodyTextView(String text) {
@@ -184,11 +198,25 @@ public class ViewRecipeActivity extends AppCompatActivity {
         return tv;
     }
 
+    private void saveNotes() {
+        if (recipeRef == null) {
+            Toast.makeText(this, "Error: Could not find recipe", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String notes = notesEditText.getText().toString().trim();
+        recipeRef.child("notes").setValue(notes).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(this, "Notes saved", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Failed to save notes", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void openEditActivity() {
         Intent intent = new Intent(this, EditRecipeActivity.class);
         intent.putExtra("RECIPE_ID", recipeId);
         startActivity(intent);
-        // No finish() — user returns here; the realtime listener will refresh data automatically.
     }
 
     private void confirmDelete() {
