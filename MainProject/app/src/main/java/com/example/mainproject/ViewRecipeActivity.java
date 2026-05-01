@@ -240,7 +240,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
                 tv.setTextSize(14f);
                 tv.setTextColor(Color.BLACK);
 
-                ParsedTime pt = parseTimesFromText(step);
+                ParsedTime pt = (ParsedTime) parseTimesFromText(step);
                 if (pt != null) {
                     SpannableString spannable = new SpannableString(fullText);
 
