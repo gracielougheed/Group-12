@@ -3,6 +3,10 @@ package com.example.mainproject;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -199,6 +203,20 @@ public class MealPlannerFragment extends Fragment {
 
             String startDate = startDateBtn.getText().toString();
             String endDate = endDateBtn.getText().toString();
+
+            // Validate that end date is not before start date
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yy", Locale.getDefault());
+                Date start = sdf.parse(startDate);
+                Date end = sdf.parse(endDate);
+                if (end.before(start)) {
+                    Toast.makeText(requireContext(), "End date cannot be before start date", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } catch (Exception e) {
+                Toast.makeText(requireContext(), "Invalid date format", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             // Save the new meal plan to Firebase
             DatabaseReference plansRef = database.getReference("users").child(uid).child("mealplans");
