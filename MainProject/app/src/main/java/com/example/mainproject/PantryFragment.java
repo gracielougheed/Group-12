@@ -158,8 +158,13 @@ public class PantryFragment extends Fragment {
                 quantityInput.setError("Required");
                 return;
             }
-            if (Double.parseDouble(quantity) <= 0) {
-                quantityInput.setError("Must be positive");
+            try {
+                if (Double.parseDouble(quantity) <= 0) {
+                    quantityInput.setError("Must be positive");
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                quantityInput.setError("Must be a valid number");
                 return;
             }
             if (ingredientNames.contains(name.toLowerCase())) {
@@ -263,8 +268,13 @@ public class PantryFragment extends Fragment {
                         quantityInput.setError("Required");
                         return;
                     }
-                    if (Double.parseDouble(quantity) <= 0) {
-                        quantityInput.setError("Must be positive");
+                    try {
+                        if (Double.parseDouble(quantity) <= 0) {
+                            quantityInput.setError("Must be positive");
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        quantityInput.setError("Must be a valid number");
                         return;
                     }
                     // Only check for duplicates if the name was actually changed

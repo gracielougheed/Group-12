@@ -56,6 +56,8 @@ public class HomeActivity extends AppCompatActivity {
                     selectedFragment = new FriendsFragment();
                 } else if (itemId == R.id.nav_meal_planner) {
                     selectedFragment = new MealPlannerFragment();
+                } else if (itemId == R.id.nav_profile) {
+                    selectedFragment = new ProfileFragment();
                 }
 
                 if (selectedFragment != null) {
